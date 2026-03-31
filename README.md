@@ -4,7 +4,7 @@ Claude Code operations skills - PRD generation, SOP creation, presentations, dep
 
 ## Overview
 
-This repo contains operations-focused commands and skills for Claude Code. Add it as a submodule to projects that need document generation, deployment workflows, project management, or automated QA capabilities.
+This repo contains operations-focused skills for Claude Code. Add it as a submodule to projects that need document generation, deployment workflows, project management, or automated QA capabilities.
 
 ## Installation
 
@@ -13,85 +13,138 @@ cd your-project/.claude
 git submodule add https://github.com/potentialInc/claude-operations.git operations
 ```
 
-## Available Commands
+## Available Skills
 
-### Document Generation
+### PRD Lifecycle (`skills/prd/`)
 
-| Command | Description | Usage |
-|---------|-------------|-------|
+| Skill | Description | Usage |
+|-------|-------------|-------|
 | `generate-prd` | Generate comprehensive PRD from client input | `/generate-prd <input-file>` |
 | `generate-korean-prd` | Generate Korean PRD with company watermark | `/generate-korean-prd <input-file>` |
-| `pdf-to-prd` | Convert PRD PDF to structured markdown | `/pdf-to-prd <pdf-file>` |
-| `generate-ppt` | Generate HTML presentations with branding | `/generate-ppt <topic>` |
-| `generate-sop` | Generate Standard Operating Procedure | `/generate-sop <process>` |
-| `generate-invoice` | Generate invoice document | `/generate-invoice` |
 | `update-prd` | Update PRD with client feedback | `/update-prd <feedback-file>` |
+| `pdf-to-prd` | Convert PRD PDF to structured markdown | `/pdf-to-prd <pdf-file>` |
+| `generate-tech-prd` | Generate Technical PRD (Phase B) from Feature PRD | `/generate-tech-prd <prd-file>` |
+| `input-classifier` | Auto-classify input before PRD modification | Auto-triggered on PRD edit |
 
-### Project Management
+### Document Generation (`skills/docs/`)
 
-| Command | Description | Usage |
-|---------|-------------|-------|
+| Skill | Description | Usage |
+|-------|-------------|-------|
+| `generate-ppt` | Generate HTML presentations with branding | `/generate-ppt <topic>` |
+| `generate-sop` | Generate SOP and create in Notion | `/generate-sop <process>` |
+| `generate-invoice` | Generate invoice (견적서) HTML/PDF | `/generate-invoice` |
+| `generate-statement` | Generate transaction statement (거래명세서) HTML/PDF | `/generate-statement` |
+| `generate-project-report` | Generate Korean project result report | `/generate-project-report <repo-path>` |
 | `generate-random-project` | Generate random project specs for training | `/generate-random-project` |
-| `review-command` | Review command file compatibility | `/review-command <command-file>` |
+| `review-command` | Review skill file compatibility | `/review-command <skill-file>` |
+
+### QA Skills (`skills/qa/`) — 7 individual + 1 orchestrator
+
+Framework-agnostic full-stack QA auditing. Works with any frontend (React, Vue, Angular, Svelte) and backend (NestJS, Express, Spring Boot, Django, Laravel).
+
+| Skill | Description | Usage |
+|-------|-------------|-------|
+| `qa-api` | API layer audit — CRUD, sync, response shapes | `/qa-api [module]` |
+| `qa-data` | Data layer audit — schema, migrations, indexes | `/qa-data [module]` |
+| `qa-form` | Full-stack input field consistency | `/qa-form [module]` |
+| `qa-guard` | Auth & security audit — guards, permissions | `/qa-guard [module]` |
+| `qa-runtime` | Playwright-based browser QA | `/qa-runtime [module]` |
+| `qa-scan` | Universal QA orchestrator (quick/standard/deep) | `/qa-scan [module]` |
+| `qa-ui` | UI/UX layer audit — states, modals, a11y | `/qa-ui [module]` |
+
+### Store Submission (`skills/store/`)
+
+| Skill | Description | Usage |
+|-------|-------------|-------|
+| `store-prep` | App store submission preparation | `/store-prep` |
+| `store-assets` | App icon, screenshots, splash screen | `/store-assets` |
+| `store-native` | Capacitor native app wrapper | `/store-native` |
+| `store-deploy` | Production server deployment | `/store-deploy` |
+| `store-build` | Release build (AAB/IPA) | `/store-build` |
+| `store-submit` | Store console upload & submission | `/store-submit` |
+| `store-review` | Store rejection handling | `/store-review` |
+| `store-ship` | Full pipeline orchestrator | `/store-ship` |
+
+### Workflow Skills
+
+| Skill | Description | Usage |
+|-------|-------------|-------|
+| `deployment` | Deploy to dev/staging/production | Context-triggered |
+| `iteration-manager` | Fullstack pipeline iteration cycles | Context-triggered |
+| `create-dev-pr` | Create PR to dev branch | Context-triggered |
+| `code-cleanup` | Analyze and remove dead code | `/code-cleanup` |
 
 ## Available Agents
 
 | Agent | Description | Invocation |
 |-------|-------------|------------|
-| `prd-manager` | PRD lifecycle dashboard, question tracking, Safety Gate guardian, change history audit | "PRD status" or "Review these changes" |
+| `prd-manager` | PRD lifecycle dashboard, question tracking, Safety Gate guardian | "PRD status" or "Review these changes" |
 
-## Available Skills
+## Structure
 
-### PRD Skills
-
-| Skill | Description | Enforcement |
-|-------|-------------|-------------|
-| `input-classifier` | Auto-classifies input as Q&A, change request, or mixed before PRD modification | `block` (auto-runs on PRD edit) |
-
-### Workflow Skills
-
-| Skill | Description | Triggers |
-|-------|-------------|----------|
-| `fullstack` | Project iteration and pipeline management | fullstack, pipeline, iteration manager |
-| `git-workflow` | PR creation and dev branch workflow | create pr, push to dev |
-| `deployment` | Production/staging deployment patterns | deploy, release, production |
-
-### QA Skills (15 individual + 2 orchestrators)
-
-Framework-agnostic full-stack QA auditing. Works with any frontend (React, Vue, Angular, Svelte) and backend (NestJS, Express, Spring Boot, Django, Laravel).
-
-#### Individual QA Skills
-
-| Skill | Description | Usage |
-|-------|-------------|-------|
-| `qa-inputs` | Entity → DTO → Zod → Form UI consistency | `/qa-inputs [module]` |
-| `qa-crud` | CRUD endpoint completeness, error handling, frontend coverage | `/qa-crud [module]` |
-| `qa-buttons` | Button handlers, routes, loading states, accessibility | `/qa-buttons [module]` |
-| `qa-auth` | Role guards, route protection, permission gaps, token handling | `/qa-auth [module]` |
-| `qa-api-sync` | Frontend API calls vs backend endpoints sync | `/qa-api-sync [module]` |
-| `qa-db-integrity` | Entity vs migrations, FK relations, index coverage | `/qa-db-integrity [module]` |
-| `qa-layout` | Page layout consistency — titles, panels, spacing, borders | `/qa-layout [module]` |
-| `qa-list` | List/table pages — sorting, pagination, filters, empty states | `/qa-list [module]` |
-| `qa-screen` | Playwright screen-level QA — console errors, a11y, CLS | `/qa-screen [module]` |
-| `qa-test-gen` | Generate Playwright E2E tests for form validation | `/qa-test-gen [module]` |
-| `qa-a11y` | WCAG 2.2 accessibility — semantic HTML, ARIA, keyboard nav | `/qa-a11y [page-path]` |
-| `qa-back-nav` | Back navigation — history stack, redirects, scroll restore | `/qa-back-nav [page-path]` |
-| `qa-modal` | Modal/drawer — focus trap, scroll lock, ESC, form handling | `/qa-modal [page-path]` |
-| `qa-performance` | Performance — bundle size, lazy loading, Core Web Vitals | `/qa-performance [page-path]` |
-| `qa-states` | Loading/error/empty states, optimistic updates, race conditions | `/qa-states [page-path]` |
-
-#### QA Orchestrators
-
-| Skill | Description | Usage |
-|-------|-------------|-------|
-| `qa-fix` | Project-wide: diagnose → auto-fix → verify across all QA skills | `/qa-fix [module] --check <types>` |
-| `qa-page` | Page-level: deep analysis with cross-skill insights on a single page | `/qa-page <page-path>` |
-
-#### QA Shared Reference
-
-| File | Description |
-|------|-------------|
-| `qa-shared/reference.md` | Common scoring, framework detection, output conventions |
+```
+claude-operations/
+├── README.md
+├── CLAUDE.md
+├── agents/
+│   └── prd-manager.md
+├── skills/
+│   ├── prd/
+│   │   ├── generate-prd/
+│   │   │   ├── SKILL.md
+│   │   │   └── references/           ← Supporting files
+│   │   ├── generate-korean-prd/
+│   │   │   └── SKILL.md
+│   │   ├── generate-tech-prd/
+│   │   │   ├── SKILL.md
+│   │   │   └── references/           ← Supporting files
+│   │   ├── update-prd/
+│   │   │   └── SKILL.md
+│   │   ├── pdf-to-prd/
+│   │   │   └── SKILL.md
+│   │   └── input-classifier/
+│   │       └── SKILL.md
+│   ├── docs/
+│   │   ├── generate-ppt/
+│   │   │   └── SKILL.md
+│   │   ├── generate-sop/
+│   │   │   └── SKILL.md
+│   │   ├── generate-invoice/
+│   │   │   └── SKILL.md
+│   │   ├── generate-statement/
+│   │   │   └── SKILL.md
+│   │   ├── generate-project-report/
+│   │   │   ├── SKILL.md
+│   │   │   └── references/           ← Supporting files
+│   │   ├── generate-random-project/
+│   │   │   └── SKILL.md
+│   │   └── review-command/
+│   │       └── SKILL.md
+│   ├── qa/
+│   │   ├── _qa-shared/
+│   │   ├── qa-api/  qa-data/  qa-form/  qa-guard/
+│   │   ├── qa-runtime/  qa-scan/  qa-ui/
+│   │   └── (each with SKILL.md)
+│   ├── store/
+│   │   ├── _ship/  _store-shared/
+│   │   ├── assets/  build/  deploy/  native/  prep/  review/  submit/
+│   │   └── (each with SKILL.md)
+│   ├── fullstack/
+│   │   ├── deployment/
+│   │   │   └── SKILL.md
+│   │   └── iteration-manager/
+│   │       └── SKILL.md
+│   ├── git-workflow/
+│   │   └── create-dev-pr/
+│   │       └── SKILL.md
+│   └── code-cleanup/
+│       └── SKILL.md
+├── docs/
+│   ├── project-registry.md
+│   ├── references/
+│   └── sop/
+└── scripts/
+```
 
 ## Usage Examples
 
@@ -108,77 +161,23 @@ Framework-agnostic full-stack QA auditing. Works with any frontend (React, Vue, 
 # Create an SOP and add to Notion
 /generate-sop "New Employee Onboarding"
 
-# Deploy to staging
-"Deploy the latest changes to staging"
-→ Suggests: deployment skill
-
-# Run full QA audit on a module
-/qa-fix users --check crud,inputs,buttons
-
-# Deep QA analysis on a single page
-/qa-page src/pages/UserManagement.tsx
+# Run QA scan
+/qa-scan users
 
 # Run specific QA check
-/qa-crud products
-/qa-a11y src/pages/Dashboard.tsx
-```
-
-## Structure
-
-```
-claude-operations/
-├── README.md
-├── agents/
-│   └── prd-manager.md
-├── commands/
-│   ├── generate-prd.md
-│   ├── generate-korean-prd.md
-│   ├── generate-ppt.md
-│   ├── generate-sop.md
-│   ├── generate-invoice.md
-│   ├── generate-random-project.md
-│   ├── pdf-to-prd.md
-│   ├── review-command.md
-│   └── update-prd.md
-└── skills/
-    ├── skill-rules.json
-    ├── prd/
-    │   └── input-classifier.md
-    ├── fullstack/
-    │   ├── deployment.md
-    │   └── iteration-manager.md
-    ├── git-workflow/
-    │   └── create-dev-pr.md
-    └── qa/
-        ├── qa-shared/reference.md        # shared scoring & conventions
-        ├── qa-fix/skill.md               # orchestrator: project-wide
-        ├── qa-page/skill.md              # orchestrator: page-level
-        ├── qa-a11y/skill.md
-        ├── qa-api-sync/skill.md
-        ├── qa-auth/skill.md
-        ├── qa-back-nav/skill.md
-        ├── qa-buttons/skill.md
-        ├── qa-crud/skill.md
-        ├── qa-db-integrity/skill.md
-        ├── qa-inputs/skill.md
-        ├── qa-layout/skill.md
-        ├── qa-list/skill.md
-        ├── qa-modal/skill.md
-        ├── qa-performance/skill.md
-        ├── qa-screen/skill.md
-        ├── qa-states/skill.md
-        └── qa-test-gen/skill.md
+/qa-api products
 ```
 
 ## When to Use
 
 Add this submodule when your project involves:
-- Document generation (PRD, SOP, presentations)
+- Document generation (PRD, SOP, presentations, invoices)
 - Project initialization and setup workflows
 - Deployment pipelines
 - Git workflow automation
 - Team training with generated projects
-- **Automated QA auditing** (full-stack, framework-agnostic)
+- Automated QA auditing (full-stack, framework-agnostic)
+- App store submission pipeline
 
 ## Related Repos
 

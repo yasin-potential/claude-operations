@@ -2,7 +2,17 @@
 
 ## All Skills Must Be Written in English
 
-Every skill file (`.md`) in this repo **must be written entirely in English** — including descriptions, check names, instructions, examples, and comments. No other languages allowed.
+Every skill file (`SKILL.md`) in this repo **must be written entirely in English** — including descriptions, check names, instructions, examples, and comments. No other languages allowed.
+
+---
+
+## Skill File Convention
+
+All skills follow the official Claude Code convention:
+- **File name**: `SKILL.md` (uppercase, required)
+- **Location**: `skills/<category>/<skill-name>/SKILL.md`
+- **Supporting files**: Place in the same skill directory (e.g., `references/`, `templates/`)
+- **Frontmatter**: Only use supported fields: `name`, `description`, `argument-hint`, `user-invocable`, `disable-model-invocation`
 
 ---
 
@@ -37,80 +47,47 @@ Before merging any skill PR or modification, **run `/qa-skill-review <skill-name
 
 ## Auto-Sync to Global Skills
 
-After creating or modifying any skill under `skills/qa/`, **always sync to global**:
+After creating or modifying any skill, sync between `~/.claude/skills/` and this repo.
 
-```bash
-rm -rf ~/.claude/skills/qa-*
-cp -r skills/qa/_qa-fix ~/.claude/skills/qa-fix
-cp -r skills/qa/_qa-shared ~/.claude/skills/qa-shared
-cp -r skills/qa/*/qa-* ~/.claude/skills/
-```
+- **Sync commands**: See [docs/sop/skill-sync-guide.md](docs/sop/skill-sync-guide.md)
+- **Direction does not matter** — both locations must always match. After any skill edit, sync whichever side was NOT edited.
+- Do NOT skip this step — the global directory is not a git repo and has no other way to receive updates.
 
-This ensures `~/.claude/skills/` (used by all projects) stays in sync with this repo.
-
-Do NOT skip this step — the global directory is not a git repo and has no other way to receive updates.
-
-### Reverse Sync: Global → Operations
-
-If QA skills were modified in `~/.claude/skills/` (e.g., while working in a different project), sync back to this repo. Note: the operations repo uses a layered directory structure:
+### Skills Directory Structure
 
 ```
-skills/qa/
-  _qa-fix/         ← orchestrator (top-level, _ prefix for sort order)
-  _qa-shared/      ← shared patterns (top-level, _ prefix for sort order)
-  data/            ← Layer 1: qa-db-integrity, qa-dead-code
-  api/             ← Layer 2: qa-api-sync, qa-crud
-  auth/            ← Layer 3: qa-auth, qa-security
-  inputs/          ← Layer 4: qa-inputs
-  ui/              ← Layer 5: qa-a11y, qa-back-nav, qa-buttons, qa-layout, qa-list, qa-modal, qa-performance, qa-states
-  tools/           ← Standalone: qa-page, qa-screen, qa-test-gen, qa-skill-review
+skills/
+  prd/                     ← PRD lifecycle skills
+    generate-prd/          ← Generate PRD from client input
+    generate-korean-prd/   ← Korean PRD PDF with branding
+    generate-tech-prd/     ← Technical PRD (Phase B) from Feature PRD
+    update-prd/            ← Update PRD with client feedback
+    pdf-to-prd/            ← Convert PDF to structured markdown PRD
+    input-classifier/      ← Auto-classify input before PRD modification
+  docs/                    ← Document generation skills
+    generate-ppt/          ← HTML presentations with branding
+    generate-sop/          ← SOP creation + Notion integration
+    generate-invoice/      ← Invoice (견적서) HTML/PDF
+    generate-statement/    ← Transaction statement (거래명세서) HTML/PDF
+    generate-project-report/  ← Government project result report
+    generate-random-project/  ← Random project specs for training
+    review-command/        ← Skill file validation & compatibility check
+  qa/                      ← QA auditing skills
+    _qa-shared/            ← Shared patterns & conventions
+    qa-api/  qa-data/  qa-form/  qa-guard/  qa-runtime/  qa-scan/  qa-ui/
+  store/                   ← App store submission pipeline
+    _ship/                 ← Pipeline orchestrator
+    _store-shared/         ← Shared rules
+    assets/  build/  deploy/  native/  prep/  review/  submit/
+  fullstack/               ← Fullstack pipeline skills
+    deployment/            ← Deploy to dev/staging/production
+    iteration-manager/     ← Iteration cycle management
+  git-workflow/            ← Git workflow skills
+    create-dev-pr/         ← PR creation to dev branch
+  code-cleanup/            ← Dead code analysis & removal
 ```
 
-When syncing back, place each skill in its correct layer directory.
-
-**Direction does not matter — both locations must always match.** After any QA skill edit, sync whichever side was NOT edited.
-
-### Store Skills Sync
-
-Operations uses short folder names (`store/prep/`), but global uses prefixed names (`~/.claude/skills/store-prep/`).
-
-After creating or modifying any skill under `skills/store/`, sync to global:
-
-```bash
-rm -rf ~/.claude/skills/store-* ~/.claude/skills/_store-shared
-cp -r skills/store/_store-shared ~/.claude/skills/_store-shared
-for d in skills/store/*/; do
-  name=$(basename "$d")
-  [[ "$name" == "_store-shared" ]] && continue
-  name="${name#_}"
-  cp -r "$d" ~/.claude/skills/store-$name
-done
-```
-
-Reverse sync (global → operations):
-
-```bash
-# Shared reference
-rm -rf skills/store/_store-shared
-cp -r ~/.claude/skills/_store-shared skills/store/_store-shared
-
-# Skills
-for d in ~/.claude/skills/store-*/; do
-  name=$(basename "$d")
-  short="${name#store-}"
-  rm -rf "skills/store/$short"
-  cp -r "$d" "skills/store/$short"
-done
-```
-
-```
-skills/store/
-  _ship/           ← pipeline orchestrator
-  _store-shared/   ← shared rules (gitignore pre-flight, etc.)
-  assets/    build/
-  deploy/    native/    prep/
-  review/    submit/
-```
+Note: Operations uses short folder names (`store/prep/`), global uses prefixed names (`~/.claude/skills/store-prep/`).
 
 ---
 
@@ -126,3 +103,9 @@ skills/store/
 | Django | `django` in requirements.txt | `views.py`, `urls.py`, `models.py` |
 | Laravel | `laravel/framework` in composer.json | `*Controller.php`, `routes/*.php` |
 ```
+
+---
+
+## Skill Guide
+
+For a practical guide to all skills with prerequisites, pipelines, and tips, see [docs/skill-guide.md](docs/skill-guide.md).

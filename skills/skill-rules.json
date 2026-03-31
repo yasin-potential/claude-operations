@@ -6,7 +6,7 @@
       "type": "domain",
       "enforcement": "suggest",
       "priority": "high",
-      "file": "fullstack/iteration-manager.md",
+      "file": "fullstack/iteration-manager/SKILL.md",
       "promptTriggers": {
         "keywords": [
           "fullstack",
@@ -31,7 +31,7 @@
       "type": "domain",
       "enforcement": "suggest",
       "priority": "medium",
-      "file": "git-workflow/create-dev-pr.md",
+      "file": "git-workflow/create-dev-pr/SKILL.md",
       "promptTriggers": {
         "keywords": ["create pr", "pull request", "dev branch", "push to dev", "pr to dev"],
         "intentPatterns": [
@@ -45,7 +45,7 @@
       "type": "domain",
       "enforcement": "suggest",
       "priority": "medium",
-      "file": "fullstack/deployment.md",
+      "file": "fullstack/deployment/SKILL.md",
       "promptTriggers": {
         "keywords": ["deploy", "deployment", "production", "staging", "release"],
         "intentPatterns": [
@@ -58,7 +58,7 @@
       "type": "guardrail",
       "enforcement": "block",
       "priority": "critical",
-      "file": "prd/input-classifier.md",
+      "file": "prd/input-classifier/SKILL.md",
       "fileTriggers": {
         "pathPatterns": [".claude-project/prd/*_PRD_*.md"]
       },
