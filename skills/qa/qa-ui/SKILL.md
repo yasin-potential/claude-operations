@@ -11,8 +11,18 @@ Comprehensive UI/UX audit covering all frontend interaction patterns. Consolidat
 
 ## Execution Mode
 
-- **Standalone** (`/qa-ui [module]`): Run all subcategories. Use `--sub` to filter.
-- **Via qa-scan** (`/qa-scan --check ui`): qa-scan uses these checks for the UI layer.
+- **Standalone** (`/qa-ui [module]`): Phase 1 SCAN → Phase 2 ANALYZE → Phase 3 VERIFY
+- **Via qa-scan** (`/qa-scan --check ui`): receives PROJECT INDEX from Step 0b, runs Phase 2 only
+
+### Standalone Phases
+
+**Phase 1: SCAN** — build UI Index (one pass, no re-reads during Phase 2)
+```bash
+# Execute Scan Spec below → output UI Index table
+```
+**Phase 2: ANALYZE** — apply Tier 1 + Tier 2 checks against UI Index
+
+**Phase 3: VERIFY** — re-scan changed files only, confirm 0 remaining findings
 
 ### Subcategory Filtering
 
@@ -24,6 +34,32 @@ Comprehensive UI/UX audit covering all frontend interaction patterns. Consolidat
 ```
 
 Shared conventions: see `qa-shared/reference.md`.
+
+## Scan Spec
+
+> Used by qa-scan Step 0b to build PROJECT INDEX. Standalone runs execute this as Phase 1.
+
+### Files to scan
+- `pages/**/*.tsx` — all page components
+- `components/layout/*.tsx` — shared layout components (ProfileMenu, PageHeader, BottomNav, etc.)
+
+### Data to extract per page file
+- File path + role (inferred from path segment: `patient/`, `coach/`, `admin/`)
+- Imported shared layout components (ProfileMenu, Bell button, notification button patterns)
+- Header elements rendered at top of component (first sticky/fixed div content)
+- BottomNav visibility (does layout hide it for this route?)
+- i18n keys used (for cross-role interpolation comparison)
+- API hooks called (useQuery/useMutation names and parameters)
+- UI features present (search, filter, sort, pagination, delete, batch actions)
+
+### UI Index output format
+| Page File | Role | Header: ProfileMenu | Header: Bell/Notification | Notes |
+|-----------|------|--------------------|-----------------------------|-------|
+| patient/home.tsx | patient | ✓ | ✓ | home page |
+| patient/exercise.tsx | patient | — | — | |
+| coach/home.tsx | coach | ✓ | ✓ | home page |
+
+**Consistency rule:** ProfileMenu and Bell/notification buttons must appear ONLY on home pages (`/patient`, `/coach`, `/admin` index routes). Flag any non-home page that includes them.
 
 ## Tier 1: Checklist
 
@@ -158,6 +194,7 @@ Before flagging checks M-02, M-03, M-04, M-06, M-13, M-14, determine if the moda
 | N-15 | WebView onJsBeforeUnload suppression | **High** | has_native_wrapper | InAppWebView must handle `onJsBeforeUnload` to suppress the default English browser dialog. Back navigation should be controlled by the native wrapper, not browser-level beforeunload (Vite dev server sets beforeunload for HMR) |
 | N-16 | WebView session boundary on re-login | **Critical** | has_native_wrapper | In WebView-wrapped SPAs, logout→login creates a new session but the WebView back history still contains previous user's pages. The back button handler must inspect history via `getCopyBackForwardList()` and block navigation past login/auth page boundaries. Without this, pressing back after re-login exposes previous user's data |
 | N-17 | WebView history clear on auth transition | **High** | has_native_wrapper | After successful login in a WebView-wrapped app, the native layer should detect the auth-page→home transition (via `onUpdateVisitedHistory`) and clear or fence the navigation history (e.g., `replaceState`) to prevent stale session pages from being reachable |
+| N-18 | Tab/BottomNav uses push instead of replace | **High** | has_tab_nav | Tab bar or bottom navigation links use `history.push` (React Router `<Link>`, `navigate()`) instead of `replace`. Each tab switch stacks a history entry, so the back button cycles through visited tabs instead of exiting the app. **Detection:** Find the BottomNav/TabBar component and check if `<Link>` has `replace` prop or `navigate()` uses `{ replace: true }`. **Fix:** Add `replace` to all tab-level navigation links. Sub-page navigation within a tab should remain `push` so back-to-list still works |
 
 #### Navigation Framework Detection
 
@@ -263,7 +300,7 @@ Before flagging checks M-02, M-03, M-04, M-06, M-13, M-14, determine if the moda
 | Y-26 | Spacing not grid-aligned | **Low** | | Padding/margin uses arbitrary values (e.g., `p-[13px]`, `mt-[7px]`) outside 4/8px grid system. Prefer standard Tailwind spacing scale |
 | Y-27 | Icon size inconsistent | **Low** | | Same-context icons use different sizes (e.g., 16px in one action button, 24px in adjacent action button). Icon size should be consistent within the same UI context |
 | Y-28 | Missing viewport-fit=cover | **CRITICAL** | webview_checks | Viewport meta tag lacks `viewport-fit=cover`. Required for iOS WebView/Safari to expose safe area insets. Without it, `env(safe-area-inset-*)` always returns 0 and fixed elements overlap the home indicator |
-| Y-29 | Fixed bottom element missing safe-area padding | **CRITICAL** | safe_area | Fixed-position elements at screen bottom (`fixed bottom-0`, BottomNav, footer buttons) lack `env(safe-area-inset-bottom)` padding. On notched iPhones and Android devices with system nav bars, these get clipped |
+| Y-29 | Fixed bottom element missing safe-area padding | **CRITICAL** | safe_area | Fixed-position elements at screen bottom (`fixed bottom-0`, BottomNav, footer buttons) lack `env(safe-area-inset-bottom)` padding. On notched iPhones and Android devices with system nav bars, these get clipped. Additionally, must include `bottom-nav-extend` CSS class to extend background below viewport, covering the gap above Android system navigation bar |
 | Y-30 | Fixed top element missing safe-area padding | **High** | safe_area | Fixed-position elements at screen top lack `env(safe-area-inset-top)` padding. On notched iPhones, content overlaps the status bar/notch area |
 | Y-31 | Missing overscroll-behavior | **High** | webview_checks | Root element and scrollable containers lack `overscroll-behavior: none/contain`. In WebView apps, overscroll triggers pull-to-refresh or rubber-band bounce that conflicts with app navigation |
 | Y-32 | Missing theme-color meta tag | **Medium** | webview_checks | No `<meta name="theme-color">` tag. Browser/WebView status bar area has no defined color, breaking native app appearance |
@@ -273,6 +310,8 @@ Before flagging checks M-02, M-03, M-04, M-06, M-13, M-14, determine if the moda
 | Y-36 | Flex-pushed bottom content missing safe-area padding | **High** | safe_area | Fullscreen flex layouts (`flex-col flex-1`, `h-screen`) that push footer content to the bottom via `mt-auto` or `justify-between` use fixed padding-bottom (e.g., `pb-6`) without `env(safe-area-inset-bottom)`. On devices with system navigation bars (Galaxy Z Flip, iPhones with home indicator), the bottom content gets clipped. **Detection:** Find containers with `flex-col` + (`flex-1` or `h-screen`) where a child uses `mt-auto` or parent uses `justify-between`. Check if padding-bottom includes `var(--safe-area-bottom)` or `env(safe-area-inset-bottom)`. **Fix:** Replace fixed `pb-*` with `pb-[calc(<value>+var(--safe-area-bottom))]` |
 | Y-37 | Fixed-width children overflow flex/grid parent | **High** | is_mobile_target | Child elements use fixed pixel widths (`w-[Npx]`, `min-w-[Npx]`) inside a flexible container (`flex`, `grid`, `grid-cols-*`) without `min-w-0` or `shrink`. On narrow mobile viewports, total child width exceeds container, causing clipping. **Detection:** Find elements with `w-[*px]` or `w-[*rem]` classes whose parent (or grandparent within same component) uses `flex`, `grid`, or `grid-cols-*`. Sum all sibling fixed widths + gap values. Flag when total exceeds ~160px (half of 360px mobile viewport minus typical padding). **Fix:** Replace fixed widths with `flex-1 min-w-0`, or use `max-w-` + `shrink` |
 | Y-38 | Native wrapper SafeArea not applied | **CRITICAL** | has_native_wrapper | Mobile wrapper exists but SafeArea is not properly applied to the WebView container. **Flutter:** No `SafeArea` widget wrapping the WebView, or `SafeArea(bottom: false)` disabling bottom protection. **Capacitor:** `StatusBar` or `SafeArea` plugin not configured. **React Native:** No `SafeAreaView` wrapping the WebView component. **Detection:** Read the native wrapper's main screen/widget file and check for SafeArea usage. Without this, CSS `env(safe-area-inset-*)` may return 0 on Android even when the system nav bar overlaps content |
+| Y-39 | BottomNav visible on full-screen detail pages | **High** | has_tab_nav | Pages that have their own back-button header (chat detail, form detail, item detail with input fields) should hide the BottomNav in the parent layout to maximize content area and prevent keyboard overlap on mobile. **Detection:** (1) Find all routes nested under a layout that renders BottomNav. (2) Identify "detail" routes (pattern: `resource/:id`, or pages containing a back button + text input). (3) Check if the layout conditionally hides BottomNav for those routes. **Fix:** Add route-based detection in the layout (e.g., regex match on pathname) to hide BottomNav and remove its paddingBottom reservation. The detail page's own input area should include `pb-safe` for safe-area padding |
+| Y-40 | Header element scope violation | **High** | | UI elements that belong only on home/index pages (e.g., ProfileMenu avatar badge, Bell/notification button) are rendered on non-home pages. **Scan (from UI Index):** Find all rows in UI Index where `Header: ProfileMenu = ✓` or `Header: Bell/Notification = ✓` and page is NOT a home index route. **Fix:** Remove from non-home pages, keep only on `patient/home`, `coach/home`, `admin/home` equivalents. |
 
 ### Performance (from qa-performance)
 
@@ -310,6 +349,28 @@ Before flagging checks M-02, M-03, M-04, M-06, M-13, M-14, determine if the moda
 | I-07 | Missing pluralization | **Low** | i18n_multi_locale | Count display without plural forms |
 | I-08 | String concatenation for i18n | **Warning** | i18n_multi_locale | Building sentences by concatenating translated fragments |
 | I-09 | Missing language selector | **Low** | i18n_multi_locale | Multi-locale app with no way to switch language |
+
+### Cross-Role Parity (from qa-parity)
+
+> **Gate:** `has_multiple_roles` — only run when the app has 2+ user roles with separate page directories (e.g., `patient/`, `coach/`, `admin/`).
+
+**Scan Procedure:**
+1. Identify all role directories under `pages/` (e.g., `patient/`, `coach/`, `admin/`)
+2. Map equivalent pages across roles by filename and function (e.g., `patient/home.tsx` ↔ `coach/home.tsx`, `patient/notifications.tsx` ↔ `coach/notifications.tsx`)
+3. For each equivalent page pair, run checks X-01 through X-10
+
+| # | Check | Severity | Gate | Description |
+|---|-------|----------|------|-------------|
+| X-01 | i18n interpolation drift | **High** | | Same-function i18n keys across roles use different interpolation variables. One role's key has `{{name}}` but the equivalent key in another role is hardcoded text. **Scan**: Group i18n keys by suffix (e.g., `*.home.greeting`). Compare `{{var}}` patterns within each group. Flag mismatches |
+| X-02 | Feature exists in one role only | **High** | | A feature (search, filter, sort, pagination, delete, batch action) exists on one role's page but is missing from the equivalent page in another role. **Scan**: For each equivalent page pair, compare: imported hooks, API service calls, UI controls (search inputs, filter dropdowns, sort buttons, pagination). Flag features present in one but absent in the other |
+| X-03 | API call pattern mismatch | **High** | | Equivalent pages call different API endpoints or pass different query parameters for the same data. One role sends pagination params, the other doesn't. **Scan**: Compare `useQuery`/`useMutation` hooks and their parameters across equivalent pages |
+| X-04 | State management divergence | **Medium** | | One role uses Redux/store for a feature while the equivalent page in another role uses local state, or vice versa. **Scan**: Compare state management imports and patterns across equivalent pages |
+| X-05 | Error/loading state coverage gap | **High** | | One role's page handles loading/error/empty states but the equivalent page in another role is missing one or more of these states. **Scan**: Compare `isLoading`, `isError`, empty-check patterns across equivalent pages |
+| X-06 | Navigation pattern mismatch | **Medium** | | Equivalent pages use different navigation patterns (push vs replace, hardcoded path vs dynamic). Back button behavior differs across roles for the same flow. **Scan**: Compare `navigate()`, `<Link>`, router usage across equivalent pages |
+| X-07 | UI component choice divergence | **Medium** | | Same-function UI renders with different component choices across roles. One uses a modal, the other an inline form. One uses a dropdown, the other radio buttons. **Scan**: Compare component imports and JSX structure for equivalent features |
+| X-08 | Permission/guard asymmetry | **High** | | A page in one role has auth guards, confirmation dialogs, or validation that the equivalent page in another role lacks. **Scan**: Compare guard decorators, confirmation patterns, and form validation across roles |
+| X-09 | Real-time feature gap | **High** | has_realtime | Socket/real-time features (typing indicators, online status, live updates) implemented for one role but missing in the equivalent page of another role. **Scan**: Compare Socket.IO event subscriptions and handlers across equivalent pages |
+| X-10 | Shared component prop inconsistency | **Medium** | | A shared component is used across roles but receives different props or configurations that cause behavioral differences. **Scan**: Find shared components imported by multiple role pages. Compare props passed to them across roles |
 
 ## Tier 2: Reasoning Patterns
 
