@@ -6,3 +6,7 @@
 
 # Claude project local files
 .claude-project/
+
+# Personal skill sync scripts (not shared)
+scripts/sync-skills-to-local.sh
+scripts/skill-map.sh
