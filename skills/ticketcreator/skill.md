@@ -273,7 +273,21 @@ curl -s -b /tmp/phc-cookies.txt "https://pm.potentialai.com/api/projects"
 - If not specified → show project list and ask the user to choose
 - Extract `id` and `name` from the matched project
 
-### Step 3: Confirm with User
+### Step 3: Resolve Assignee from Project Memory
+
+**Never use a hardcoded assignee default.** Instead:
+
+1. Read the current project's memory index: `C:\Users\vhxj3\.claude\projects\{encoded-cwd}\memory\MEMORY.md`
+2. Look for an entry tagged `team` or `assignees` (e.g., `team_members.md`). It should contain a table of team members with their roles and PM tool user IDs.
+3. Based on the ticket's **category**, pick the assignee:
+   - **Dev categories** (Bug, Change Request, Requirement, Integration, Config) → project's **Lead Developer**
+   - **PM categories** (General, Team, Onboarding, Setup) → project's **PM**
+4. If the project memory has no team file, or the needed role is missing:
+   - Ask the user who to assign (show the project's team members from the API if available)
+   - After the user answers, **save the answer to project memory** as a `team` memory so future tickets don't need to ask
+5. The user can always override the resolved assignee before upload
+
+### Step 4: Confirm with User
 
 Use the resolved project name in the confirmation:
 
@@ -281,7 +295,7 @@ Use the resolved project name in the confirmation:
 
 Never auto-upload without this confirmation.
 
-### Step 4: Create Ticket
+### Step 5: Create Ticket
 
 ```bash
 curl -s -b /tmp/phc-cookies.txt -X POST \
@@ -300,7 +314,7 @@ curl -s -b /tmp/phc-cookies.txt -X POST \
 | Category | `category` | Uppercase + spaces to `_` (e.g., `Change Request` → `CHANGE_REQUEST`) |
 | Due Date | `dueDate` | As-is (YYYY-MM-DD) |
 | Description | `description` | Convert markdown to HTML (see below) |
-| — | `assigneeIds` | Default: `["c501c330-ad65-4a14-8ec3-b8259ddb4a95"]` (Jayden/COO) unless user specifies |
+| — | `assigneeIds` | Resolved from project memory (see Step 3). Never hardcoded. |
 
 ### Priority Mapping
 
