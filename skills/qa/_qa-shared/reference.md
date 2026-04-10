@@ -77,6 +77,33 @@ If `--backend` path provided, use that path. Otherwise, look for sibling `backen
 
 ---
 
+## Mobile Wrapper Detection (Common)
+
+Detects if the project wraps a web app inside a native container. Sets `apps[].type = "mobile-wrapper"` and enables platform gates (`webview_checks`, `has_native_wrapper`, `safe_area`).
+
+| Wrapper | Detection Signal | Scan Path |
+|---------|-----------------|-----------|
+| Flutter WebView | `pubspec.yaml` with `flutter_inappwebview` or `webview_flutter` in dependencies | Sibling `mobile/`, `app/`, or any dir with `pubspec.yaml` |
+| Capacitor | `capacitor.config.ts` or `capacitor.config.json` exists, or `@capacitor/core` in package.json | Project root or sibling dirs |
+| React Native WebView | `react-native-webview` in package.json | Sibling `mobile/` or project root |
+| Cordova | `config.xml` with `<widget>` element | Project root |
+| Tauri | `tauri.conf.json` or `src-tauri/` directory | Project root |
+| Expo | `app.json` with `"expo"` key + `expo` in package.json | Project root |
+| None | No wrapper detected | — |
+
+**When a wrapper is detected:**
+1. Set `context.deployment = "webview-wrapped"`
+2. Add appropriate platforms to `context.platform[]` (e.g., `["android-webview", "ios-webview"]`)
+3. Gates `webview_checks`, `has_native_wrapper`, `safe_area`, `is_mobile_target` become `true`
+4. QA checks gated on these values will activate automatically
+
+**Native wrapper-level checks** (applied when `has_native_wrapper` is true):
+- Flutter: `SafeArea` widget usage, `SystemNavigator.pop()` for exit, back button handling via `PopScope`
+- Capacitor: `StatusBar` plugin, `SafeArea` plugin, `App.addListener('backButton')`, `Keyboard` plugin
+- React Native: `SafeAreaView` component, `BackHandler` API, `KeyboardAvoidingView`
+
+---
+
 ## Configuration File Support
 
 All QA skills check for an optional `.qa-config.json` file at the project root:
@@ -193,22 +220,13 @@ Override: `outputDir` in `.qa-config.json`
 Feature suffixes by skill:
 | Skill | Feature Suffix |
 |-------|---------------|
-| `qa-back-nav` | `BackNav` |
-| `qa-inputs` | `InputFields` |
-| `qa-states` | `LoadingErrorEmpty` |
-| `qa-modal` | `ModalDrawer` |
-| `qa-auth` | `PermissionRole` |
-| `qa-list` | `TableList` |
-| `qa-a11y` | `Accessibility` |
-| `qa-performance` | `Performance` |
-| `qa-screen` | `FullPage` |
-| `qa-buttons` | `Buttons` |
-| `qa-api-sync` | `ApiSync` |
-| `qa-crud` | `CRUD` |
-| `qa-db-integrity` | `DbIntegrity` |
-| `qa-layout` | `Layout` |
-| `qa-test-gen` | `TestGen` |
-| `qa-security` | `Security` |
+| `qa-data` | `Data` |
+| `qa-api` | `API` |
+| `qa-guard` | `Guard` |
+| `qa-form` | `Form` |
+| `qa-ui` | `UI` |
+| `qa-runtime` | `Runtime` |
+| `qa-scan` | `Scan` |
 
 ### Report Header Template
 
@@ -237,19 +255,295 @@ When analyzing a page, these skills are commonly run together:
 
 | If you find... | Also run... | Reason |
 |---------------|-------------|--------|
-| Forms inside modals | `qa-inputs` on modal component | Form validation coverage |
-| Modals that push history | `qa-back-nav` | Back button may close modal or navigate |
-| Tables with row actions | `qa-auth` | Row actions may be role-gated |
-| Tables with data fetching | `qa-states` | Tables need loading/error/empty states |
-| Permission-gated delete | `qa-modal` | Delete confirmation modal quality |
-| Navigation after form submit | `qa-back-nav` | Post-submit redirect correctness |
-| Button-heavy interfaces | `qa-buttons` | Button state and interaction coverage |
-| API-driven pages | `qa-api-sync` | API synchronization and caching |
-| CRUD operations | `qa-crud` | Create/Read/Update/Delete flow coverage |
-| Database operations | `qa-db-integrity` | Data integrity and constraint validation |
-| Complex layouts | `qa-layout` | Responsive and layout consistency |
+| Forms inside modals | `qa-form` on modal component | Form validation coverage |
+| Modals that push history | `qa-ui --sub nav` | Back button may close modal or navigate |
+| Tables with row actions | `qa-guard` | Row actions may be role-gated |
+| Tables with data fetching | `qa-ui --sub states` | Tables need loading/error/empty states |
+| Permission-gated delete | `qa-ui --sub modals` | Delete confirmation modal quality |
+| Navigation after form submit | `qa-ui --sub nav` | Post-submit redirect correctness |
+| API-driven pages | `qa-api` | API synchronization and caching |
+| CRUD operations | `qa-api` | Create/Read/Update/Delete flow coverage |
+| Database operations | `qa-data` | Data integrity and constraint validation |
+| Complex layouts | `qa-ui --sub layout` | Responsive and layout consistency |
 
-Use `qa-screen` to automatically run all relevant skills for a page.
+Use `qa-scan` to automatically run all relevant skills for a module.
+
+---
+
+## Cross-Skill Trigger System
+
+Skills can declare **triggers** — conditions that, when found, recommend running specific checks in other skills. This creates cascading verification across skill boundaries.
+
+### How Triggers Work
+
+1. Each skill defines a `## Cross-Skill Triggers` section listing conditions and their target checks
+2. **In orchestrated mode** (`qa-fix`, `qa-page`): The orchestrator reads triggers and queues the target checks automatically
+3. **In standalone mode** (`/qa-inputs`): Triggers appear as recommendations in the report output — not auto-executed
+
+### Current Trigger Map
+
+| Source Skill | Condition | Target | Target Check |
+|-------------|-----------|--------|-------------|
+| qa-form | New Update DTO field (BQ1) | qa-guard | G-17 Role-Based Field Editability |
+| qa-form | Identity field in service (#57) | qa-api | A-14 Service Layer Identity Bypass |
+| qa-form | Sensitive field in response (BQ4) | qa-guard | G-18 Response Field Filtering |
+| qa-form | Enum 3+ values (BQ3) | qa-data | D-12 Immutable Column Protection |
+| qa-guard | New role-restricted endpoint | qa-form | BQ2 Role-Based Editability |
+| qa-guard | Role mismatch (G-04) | qa-form | #57 Immutable Field |
+| qa-api | New Update endpoint (A-01) | qa-form | BQ1 Field Mutability |
+| qa-api | Missing ownership (A-09) | qa-guard | G-05 Missing current-user validation |
+| qa-data | New Entity column (D-01) | qa-form | Full pipeline check |
+| qa-data | Enum column 3+ values | qa-form | BQ3 State Transitions |
+| qa-data | Unique constraint (D-07) | qa-form | #18 Unique constraint hint |
+
+---
+
+## Business Logic Cache Files
+
+Some QA skills generate project-level cache files to avoid re-evaluating stable business logic decisions on every run.
+
+### QA_BUSINESS_DECISIONS.md
+
+- **Generated by**: `qa-form --group business` or qa-scan Step 4 (LEARN)
+- **Location**: Project root
+- **Purpose**: Cache results of business logic questions (BQ1-BQ4), forbidden operations, and intentional divergences
+- **Cache behavior**: Confirmed entries are skipped on subsequent runs. New/changed entities trigger re-evaluation
+- **Force refresh**: `--no-cache` flag ignores all cached entries
+
+### QA_REGRESSION_PATTERNS.md
+
+- **Generated by**: qa-scan Step 4 (LEARN) — automatically after every fix
+- **Location**: Project root
+- **Purpose**: Record bug patterns that escaped QA, so the same class of bug is caught in future runs
+- **Scan behavior**: Every QA run checks all patterns (including Quick mode). If a pattern's fix is missing or reverted, flag as **Critical**
+
+**Template** (auto-created on first LEARN step):
+
+```markdown
+# QA Regression Patterns
+
+> Auto-generated by qa-scan Step 4 (LEARN). Each entry represents a bug that QA missed.
+> Every QA run scans these patterns. If a fix is missing or reverted → Critical.
+
+## [Pattern Name]
+- **Bug**: [One-line description]
+- **Root Cause**: [Why QA missed it]
+- **Detection Rule**: [grep/scan pattern]
+- **Fix Location**: [file:line]
+- **Check**: [Check ID or "NEW → qa-ui Y-39"]
+- **Project**: [Project name]
+- **Added**: [Date]
+```
+
+### Candidate Check Lifecycle
+
+Candidate checks (`[CANDIDATE]` prefix) are new checks drafted by Step 4 (LEARN) when no existing check covers a bug class.
+
+| Stage | State | Behavior |
+|-------|-------|----------|
+| Draft | `[CANDIDATE]` in check name | Added to skill check table immediately; runs in all modes |
+| Validation | 3 runs with correct detection (no false positives) | Track in `runs_ok` counter in regression pattern |
+| Promotion | Counter reaches 3 | Remove `[CANDIDATE]` prefix — check is now permanent |
+| Rejection | False positive detected | Refine detection rule or demote to `[DEPRECATED]` and skip |
+
+---
+
+## QA Coverage Map
+
+All QA skills MUST update `QA_COVERAGE.md` at the project root after each run to track which modules have been audited.
+
+### Update Protocol
+
+After completing a QA run, append or update the corresponding row in `QA_COVERAGE.md`:
+1. If the file doesn't exist, create it from the template below
+2. Find the row matching the audited module/page — update it
+3. If no matching row exists, add a new row
+4. Update the Summary section totals
+
+### Coverage File Template (`QA_COVERAGE.md`)
+
+```markdown
+# QA Coverage Map
+
+> Auto-updated by QA skills on each run. Do not edit manually.
+
+## Summary
+- Total modules: 0
+- Audited: 0 (0%)
+- Unaudited: 0
+- Last full audit: -
+
+## Coverage by Module
+
+| Module | Page/File | Last QA | Skills Run | Score | Issues | Risk |
+|--------|-----------|---------|------------|-------|--------|------|
+
+## Unaudited Modules
+> Modules detected in the codebase but never QA'd.
+
+| Module | Files | Risk Score |
+|--------|-------|------------|
+
+## Stale Modules
+> Modules changed after their last QA run.
+
+| Module | Last Changed | Last QA | Days Stale |
+|--------|-------------|---------|------------|
+```
+
+### Viewing Coverage
+
+```
+/qa-inputs --coverage          # Show current coverage map without running checks
+/qa-fix --coverage             # Show coverage across all skill types
+```
+
+---
+
+## Change-Aware QA
+
+QA skills support a `--changed` flag to focus analysis on recently modified code only.
+
+### How It Works
+
+1. `--changed`: Uses `git diff HEAD~1 --name-only` to find changed files
+2. `--changed HEAD~N`: Uses `git diff HEAD~N --name-only` for wider range
+3. `--changed branch`: Uses `git diff branch...HEAD --name-only` to compare against a branch
+4. Map changed files to modules (extract module name from file path)
+5. Run checks ONLY on the identified modules
+6. Cross-reference with `QA_COVERAGE.md` to flag modules that changed after their last QA
+
+### File-to-Module Mapping
+
+```
+backend/src/modules/{module}/    → module name = {module}
+frontend/app/pages/{module}/     → module name = {module}
+frontend-dashboard/app/pages/{module}/ → module name = dashboard-{module}
+```
+
+For non-standard paths, use the parent directory name as the module identifier.
+
+### Example Usage
+
+```
+/qa-inputs --changed              # QA only modules changed in last commit
+/qa-inputs --changed HEAD~5       # QA modules changed in last 5 commits
+/qa-crud --changed dev            # QA modules changed since diverging from dev
+```
+
+---
+
+## Risk-Based Priority
+
+QA skills support a `--risk-first` flag to prioritize high-risk modules in the report and execution order.
+
+### Risk Score Formula
+
+```
+Risk = (days_since_last_qa × 1)
+     + (recent_change_count × 2)
+     + (user_facing × 3)
+     + (auth_payment_related × 5)
+```
+
+| Factor | How to detect | Weight |
+|--------|--------------|--------|
+| Days since last QA | `QA_COVERAGE.md` Last QA column | ×1 per day |
+| Recent change count | `git log --oneline --since="2 weeks ago" -- {module_path} \| wc -l` | ×2 per commit |
+| User-facing | Module serves patient/coach frontend (not admin-only) | +3 if true |
+| Auth/payment related | Module path contains `auth`, `payment`, `billing`, `security` | +5 if true |
+
+### Usage
+
+```
+/qa-inputs --risk-first           # Sort report by risk score (highest first)
+/qa-fix --risk-first --changed    # Fix high-risk changed modules first
+```
+
+### Report Output
+
+When `--risk-first` is active, add a Risk Summary section at the top of the report:
+
+```
+━━━ Risk Summary ━━━
+🔴 HIGH (15+): admin/users (score: 22), auth/login (score: 18)
+🟡 MEDIUM (5-14): exercises (score: 8)
+🟢 LOW (0-4): surveys (score: 2)
+```
+
+---
+
+## Pre-Commit Lightweight QA
+
+A minimal QA check set designed to run on changed files BEFORE committing, catching only the most critical issues.
+
+### Pre-Commit Check Set
+
+These are the highest-impact checks that catch dangerous bugs with minimal execution time:
+
+| Check | Source Skill | What it catches |
+|-------|-------------|----------------|
+| #57 | qa-form | Identity field in Update DTO (username/email editable) |
+| #58 | qa-form | DTO vs Zod constraint divergence |
+| #13 | qa-form | Nullable/Required conflict between Entity and DTO |
+| A-14 | qa-api | Service layer identity field bypass |
+| #60 | qa-form | Password policy cross-flow parity |
+
+### Usage
+
+```
+/qa-inputs --precommit            # Run pre-commit checks on changed files only
+```
+
+### Behavior
+
+1. Automatically detects changed files via `git diff --cached --name-only` (staged files)
+2. If no staged files, falls back to `git diff --name-only` (unstaged changes)
+3. Maps files to modules, runs only the 5 pre-commit checks on those modules
+4. Output is minimal: only CRITICAL findings are shown
+5. If any CRITICAL found: output warning banner
+6. If no CRITICAL found: output one-line "Pre-commit QA: PASS"
+
+### Integration with Git Hooks (Optional)
+
+Can be invoked via a pre-commit hook if the project uses Husky or similar:
+```json
+// .husky/pre-commit (conceptual — actual invocation depends on Claude Code CLI availability)
+// This is for documentation purposes; actual hook setup is manual
+```
+
+---
+
+## Canary Check — QA Execution Quality Verification
+
+Canary checks are **known issues intentionally left in test files** that QA MUST detect. If QA completes without finding a canary, the execution was incomplete or flawed.
+
+### How It Works
+
+1. Project maintainer creates `QA_CANARY.md` at the project root (optional — not all projects need this)
+2. Each canary entry describes: what the known issue is, which QA check should find it, and where it lives
+3. At the END of every QA run, the skill checks if canaries were detected
+4. If a canary was missed → append warning: `⚠️ Canary missed: [description]. QA execution may be incomplete.`
+
+### Canary File Template (`QA_CANARY.md`)
+
+```markdown
+# QA Canary Checks
+
+> Known issues intentionally placed in test/canary files.
+> QA skills MUST detect these. Missing a canary = incomplete QA execution.
+
+| ID | Expected Check | Expected Finding | File/Location | Last Verified |
+|----|---------------|-----------------|---------------|---------------|
+| C1 | qa-inputs #57 | username in Update DTO | test/canary/update-canary.dto.ts | 2026-03-21 |
+| C2 | qa-crud #14 | entity.email = in update method | test/canary/canary.service.ts | 2026-03-21 |
+```
+
+### Important Notes
+
+- Canary files should live in a `test/canary/` directory and be excluded from production builds
+- Canaries should be simple, obvious issues — not edge cases. They test whether QA ran at all, not whether QA is clever
+- If `QA_CANARY.md` doesn't exist, skip canary verification silently (no error)
 
 ---
 
