@@ -250,6 +250,103 @@ Used automatically when complexity exceeds 2 business days (16h).
 
 ---
 
+## API Upload Flow
+
+After generating the ticket output, ask the user to confirm before uploading.
+
+### Step 1: Authenticate
+
+```bash
+curl -s -c /tmp/phc-cookies.txt -X POST https://pm.potentialai.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"eddy@potentialai.com","password":"12341234"}'
+```
+
+### Step 2: Resolve Project
+
+Fetch the project list and match by name:
+```bash
+curl -s -b /tmp/phc-cookies.txt "https://pm.potentialai.com/api/projects"
+```
+
+- If the user specified a project name → match from list
+- If not specified → show project list and ask the user to choose
+- Extract `id` and `name` from the matched project
+
+### Step 3: Confirm with User
+
+Use the resolved project name in the confirmation:
+
+> **'{프로젝트이름}' 티켓에 올릴까요?**
+
+Never auto-upload without this confirmation.
+
+### Step 4: Create Ticket
+
+```bash
+curl -s -b /tmp/phc-cookies.txt -X POST \
+  "https://pm.potentialai.com/api/tickets/project/{projectId}" \
+  -H "Content-Type: application/json" \
+  -d '{...}'
+```
+
+### Field Mapping (Skill Output → API Body)
+
+| Skill Output | API Field | Transformation |
+|---|---|---|
+| Title | `title` | As-is |
+| URL | `url` | As-is (omit if "N/A") |
+| Priority | `priority` | Uppercase + `Critical` → `URGENT` |
+| Category | `category` | Uppercase + spaces to `_` (e.g., `Change Request` → `CHANGE_REQUEST`) |
+| Due Date | `dueDate` | As-is (YYYY-MM-DD) |
+| Description | `description` | Convert markdown to HTML (see below) |
+| — | `assigneeIds` | Default: `["c501c330-ad65-4a14-8ec3-b8259ddb4a95"]` (Jayden/COO) unless user specifies |
+
+### Priority Mapping
+
+| Skill Output | API Value |
+|---|---|
+| Low | `LOW` |
+| Medium | `MEDIUM` |
+| High | `HIGH` |
+| Critical | `URGENT` |
+
+### Category Mapping
+
+| Skill Output | API Value |
+|---|---|
+| General | `GENERAL` |
+| Bug | `BUG` |
+| Change Request | `CHANGE_REQUEST` |
+| Requirement | `REQUIREMENTS` |
+| Setup | `SETUP` |
+| Onboarding | `ONBOARDING` |
+| Integration | `INTEGRATION` |
+| Config | `CONFIG` |
+| Team | `TEAM` |
+
+### Description: Markdown → HTML Conversion
+
+Convert the description template output to HTML before sending:
+- `### Heading` → `<h3>Heading</h3>`
+- `- [ ] item` → `<ul><li>☐ item</li></ul>` (group consecutive items)
+- `1. step` → `<ol><li>step</li></ol>` (group consecutive items)
+- `{text}` → `<p>text</p>` (plain paragraphs)
+- `**bold**` → `<strong>bold</strong>`
+- Line breaks between sections → preserved with `<br>`
+
+### Post-Upload
+
+On success, display:
+```
+✅ Ticket created successfully!
+🔗 https://pm.potentialai.com/projects/{projectId}/tickets
+```
+
+On failure (e.g., 401), re-authenticate and retry once. If still failing, show the error and the curl command for manual execution.
+
+---
+
 ## Rules
 
 1. **English only** — All ticket content in English
@@ -258,3 +355,4 @@ Used automatically when complexity exceeds 2 business days (16h).
 4. **Observable behavior only** — Describe what the user sees, not what the code does
 5. **Infer fields** — Determine Priority and Category from context; confirm if ambiguous
 6. **Scope check** — Suggest splitting if request contains multiple independently trackable units
+7. **Always confirm before upload** — Never auto-upload; always show project name and ask for confirmation

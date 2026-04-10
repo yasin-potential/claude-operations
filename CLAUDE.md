@@ -45,6 +45,21 @@ Before merging any skill PR or modification, **run `/qa-skill-review <skill-name
 
 ---
 
+## Category README Maintenance
+
+When adding, removing, or renaming a skill within a category:
+
+1. **Update the category `README.md`** — Add/remove the skill from the Skills table
+2. **Update `skills/README.md`** — Update the category map if skill count changed or a new category was created
+
+When creating a new category folder:
+
+1. Create a `README.md` following the convention in `skills/README.md` → Category README Convention
+2. Add the category to the `skills/README.md` category map
+3. Use [store/README.md](skills/store/README.md) as the reference model
+
+---
+
 ## Auto-Sync to Global Skills
 
 After creating or modifying any skill, sync between `~/.claude/skills/` and this repo.
@@ -85,9 +100,13 @@ skills/
   git-workflow/            ← Git workflow skills
     create-dev-pr/         ← PR creation to dev branch
   code-cleanup/            ← Dead code analysis & removal
+  project-close/           ← Project closing workflow
+  project-kickoff/         ← Client kick-off presentation
+  ticketcreator/           ← Structured ticket generation
 ```
 
 Note: Operations uses short folder names (`store/prep/`), global uses prefixed names (`~/.claude/skills/store-prep/`).
+Each category folder has a `README.md` — see [skills/README.md](skills/README.md) for the full map and convention.
 
 ---
 
