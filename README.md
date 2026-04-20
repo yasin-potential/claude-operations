@@ -74,6 +74,22 @@ Framework-agnostic full-stack QA auditing. Works with any frontend (React, Vue, 
 | `create-dev-pr` | Create PR to dev branch | Context-triggered |
 | `code-cleanup` | Analyze and remove dead code | `/code-cleanup` |
 
+### Knowledge Base (`skills/kb/`)
+
+| Skill | Description | Usage |
+|-------|-------------|-------|
+| `kb` | Knowledge base management — ingest, compile, query | `/kb <command> [project]` |
+
+**Commands:**
+- `/kb ingest <project> <type> <path>` — Ingest Slack exports, standups, meetings
+- `/kb standup <project>` — Log today's standup
+- `/kb decision <project> "<title>"` — Record architecture decision
+- `/kb ask "<question>"` — Query knowledge base
+- `/kb compile <project> [weekly|monthly]` — Generate summaries
+- `/kb reindex` — Rebuild all indexes
+- `/kb recent [days]` — Show recent activity
+- `/kb search "<query>"` — Full-text search
+
 ## Available Agents
 
 | Agent | Description | Invocation |
@@ -137,6 +153,8 @@ claude-operations/
 │   ├── git-workflow/
 │   │   └── create-dev-pr/
 │   │       └── SKILL.md
+│   ├── kb/
+│   │   └── skill.md
 │   └── code-cleanup/
 │       └── SKILL.md
 ├── docs/
