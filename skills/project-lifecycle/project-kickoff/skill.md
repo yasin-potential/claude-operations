@@ -1,6 +1,6 @@
 ---
 name: project-kickoff
-description: "Generate a branded HTML slide presentation for client kick-off meetings. Collects project info via interview, then generates a navigable browser-based presentation with Potential INC branding."
+description: "Generate a branded HTML slide presentation for client kick-off meetings. Collects project info via interview, then generates a navigable browser-based presentation with Potential INC branding. For the initial project start, prefer /project-launch which generates this AND the Project Overview Slack Canvas together from one interview."
 user-invocable: true
 argument-hint: "[--project 'name'] [--client 'name']"
 ---
@@ -8,6 +8,8 @@ argument-hint: "[--project 'name'] [--client 'name']"
 # Kickoff Meeting Presentation Generator
 
 Generate a branded, browser-based slide presentation for client kick-off meetings. The presentation introduces "how we will work" after the contract is signed.
+
+> **Paired with Project Overview**: At project start, the kickoff HTML and the Project Overview Slack Canvas are generated together from the draft PRD. Use `/project-launch` to produce both at once. Use this skill (`/project-kickoff`) standalone only when regenerating the presentation later (e.g., team/timeline changed).
 
 ---
 
@@ -272,38 +274,43 @@ Generate a single self-contained HTML file with embedded CSS and JS. The present
         }
 
         .slide-cover .project-label {
-            font-size: 18px;
+            font-size: 31px;
             font-weight: 500;
             letter-spacing: 6px;
             text-transform: uppercase;
             color: rgba(255,255,255,0.7);
-            margin-bottom: 20px;
+            margin-bottom: 28px;
         }
 
         .slide-cover .project-name {
-            font-size: 56px;
+            font-size: 88px;
             font-weight: 900;
             letter-spacing: 2px;
-            margin-bottom: 16px;
+            margin-bottom: 24px;
         }
 
         .slide-cover .client-name {
-            font-size: 24px;
+            font-size: 42px;
             font-weight: 400;
             color: rgba(255,255,255,0.8);
-            margin-bottom: 60px;
+            margin-bottom: 14px;
+        }
+
+        .slide-cover .project-date {
+            font-size: 28px;
+            color: rgba(255,255,255,0.5);
         }
 
         .slide-cover .copyright {
             position: absolute;
-            bottom: 40px;
-            font-size: 13px;
+            bottom: 64px;
+            font-size: 15px;
             color: rgba(255,255,255,0.4);
         }
 
         /* === Section Title === */
         .slide .section-number {
-            font-size: 72px;
+            font-size: 96px;
             font-weight: 900;
             color: #624DFF;
             opacity: 0.15;
@@ -313,7 +320,7 @@ Generate a single self-contained HTML file with embedded CSS and JS. The present
         }
 
         .slide .slide-title {
-            font-size: 36px;
+            font-size: 44px;
             font-weight: 800;
             color: #050042;
             margin-bottom: 40px;
@@ -330,36 +337,36 @@ Generate a single self-contained HTML file with embedded CSS and JS. The present
         .tech-card {
             background: #f8f7ff;
             border-radius: 16px;
-            padding: 32px;
+            padding: 36px;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 24px;
             border: 1px solid rgba(98, 77, 255, 0.1);
         }
 
         .tech-card .tech-icon {
-            width: 56px;
-            height: 56px;
+            width: 64px;
+            height: 64px;
             background: #624DFF;
-            border-radius: 12px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 700;
             flex-shrink: 0;
         }
 
         .tech-card .tech-info h3 {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 700;
             color: #050042;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
 
         .tech-card .tech-info p {
-            font-size: 14px;
+            font-size: 17px;
             color: #666;
         }
 
@@ -378,16 +385,16 @@ Generate a single self-contained HTML file with embedded CSS and JS. The present
         }
 
         .team-avatar {
-            width: 72px;
-            height: 72px;
+            width: 88px;
+            height: 88px;
             border-radius: 50%;
             background: #624DFF;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 12px;
+            margin: 0 auto 14px;
             color: white;
-            font-size: 24px;
+            font-size: 32px;
             font-weight: 700;
         }
 
@@ -396,14 +403,14 @@ Generate a single self-contained HTML file with embedded CSS and JS. The present
         }
 
         .team-member .member-name {
-            font-size: 16px;
+            font-size: 22px;
             font-weight: 700;
             color: #050042;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
 
         .team-member .member-role {
-            font-size: 13px;
+            font-size: 17px;
             font-weight: 500;
             color: #624DFF;
         }
@@ -417,12 +424,12 @@ Generate a single self-contained HTML file with embedded CSS and JS. The present
         }
 
         .team-section-label {
-            font-size: 12px;
+            font-size: 15px;
             font-weight: 600;
             color: #666;
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
             align-self: flex-start;
             max-width: 900px;
             width: 100%;
@@ -437,27 +444,27 @@ Generate a single self-contained HTML file with embedded CSS and JS. The present
         .gantt-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 16px;
         }
 
         .gantt-table th {
-            padding: 10px 4px;
+            padding: 14px 4px;
             text-align: center;
             font-weight: 600;
             color: #050042;
             border-bottom: 2px solid #624DFF;
-            font-size: 11px;
+            font-size: 13px;
         }
 
         .gantt-table th.phase-col {
             text-align: left;
             padding-left: 16px;
-            width: 140px;
-            min-width: 140px;
+            width: 180px;
+            min-width: 180px;
         }
 
         .gantt-table td {
-            padding: 8px 2px;
+            padding: 12px 4px;
             text-align: center;
             border-bottom: 1px solid #f0f0f0;
             position: relative;
@@ -472,7 +479,7 @@ Generate a single self-contained HTML file with embedded CSS and JS. The present
         }
 
         .gantt-bar {
-            height: 28px;
+            height: 32px;
             border-radius: 6px;
             position: absolute;
             top: 50%;
@@ -500,22 +507,22 @@ Generate a single self-contained HTML file with embedded CSS and JS. The present
 
         .task-card {
             background: #f8f7ff;
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 14px;
+            padding: 28px;
             border-left: 4px solid #624DFF;
         }
 
         .task-card .week-label {
-            font-size: 12px;
+            font-size: 15px;
             font-weight: 700;
             color: #624DFF;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .task-card .task-list {
-            font-size: 14px;
+            font-size: 17px;
             color: #333;
             line-height: 1.6;
         }
@@ -537,29 +544,29 @@ Generate a single self-contained HTML file with embedded CSS and JS. The present
         }
 
         .info-card .card-icon {
-            width: 64px;
-            height: 64px;
+            width: 72px;
+            height: 72px;
             background: #624DFF;
             border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
+            margin: 0 auto 24px;
             color: white;
-            font-size: 28px;
+            font-size: 32px;
         }
 
         .info-card h3 {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 700;
             color: #050042;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
 
         .info-card p {
-            font-size: 15px;
+            font-size: 19px;
             color: #666;
-            line-height: 1.6;
+            line-height: 1.8;
         }
 
         .info-card a {
@@ -577,14 +584,14 @@ Generate a single self-contained HTML file with embedded CSS and JS. The present
         .agenda-item {
             display: flex;
             align-items: center;
-            gap: 20px;
-            padding: 20px 0;
+            gap: 24px;
+            padding: 24px 0;
             border-bottom: 1px solid #f0f0f0;
         }
 
         .agenda-item .agenda-num {
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             background: #624DFF;
             color: white;
             border-radius: 50%;
@@ -592,12 +599,12 @@ Generate a single self-contained HTML file with embedded CSS and JS. The present
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 16px;
+            font-size: 20px;
             flex-shrink: 0;
         }
 
         .agenda-item .agenda-text {
-            font-size: 20px;
+            font-size: 26px;
             color: #050042;
             font-weight: 500;
         }
@@ -609,14 +616,14 @@ Generate a single self-contained HTML file with embedded CSS and JS. The present
         }
 
         .slide-qa .qa-title {
-            font-size: 72px;
+            font-size: 96px;
             font-weight: 900;
             color: #624DFF;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         .slide-qa .qa-sub {
-            font-size: 20px;
+            font-size: 28px;
             color: #666;
         }
 
@@ -628,20 +635,20 @@ Generate a single self-contained HTML file with embedded CSS and JS. The present
         }
 
         .slide-thankyou .thankyou-title {
-            font-size: 56px;
+            font-size: 72px;
             font-weight: 900;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
 
         .slide-thankyou .contact-email {
-            font-size: 18px;
+            font-size: 24px;
             color: rgba(255,255,255,0.7);
         }
 
         .slide-thankyou .copyright {
             position: absolute;
-            bottom: 40px;
-            font-size: 13px;
+            bottom: 64px;
+            font-size: 15px;
             color: rgba(255,255,255,0.4);
         }
 
@@ -752,6 +759,7 @@ Generate a single self-contained HTML file with embedded CSS and JS. The present
     <div class="project-label">KICKOFF MEETING</div>
     <div class="project-name">[PROJECT_NAME]</div>
     <div class="client-name">[CLIENT_NAME]</div>
+    <div class="project-date">[START_MONTH] ~ [END_MONTH]</div>
     <div class="copyright">Copyright [YEAR]. Potential INC. All rights reserved</div>
 </div>
 ```
@@ -977,18 +985,99 @@ For cover/thankyou slides (white version):
 
 ---
 
-## Step 5: Report Result
+## Step 5: Playwright QA Verification (Auto)
+
+After HTML generation, **automatically** verify the presentation using Playwright MCP before reporting to the user. This catches layout issues (overflow, clipping, element collision) that would otherwise surface only when the client opens the file.
+
+### 5.1 Launch Browser
+
+1. Navigate Playwright to the generated file: `file:///<absolute path to [Kickoff] PROJECT_NAME.html>`
+2. Set viewport to **1920×1080** (Full HD projector standard)
+3. Wait for network idle + 500ms for fonts to settle
+
+### 5.2 Slide-by-Slide Inspection
+
+For each slide from 0 to N-1:
+
+1. Navigate to the slide:
+   - Slide 0 is already active on load
+   - Subsequent slides: click `.nav-dot[data-goto="N"]` or press `ArrowRight`
+2. Wait 600ms for the transition animation to finish
+3. Capture a full-page screenshot
+4. Run DOM inspection (via Playwright `evaluate`):
+   - **Vertical overflow**: `.slide.active` children extend below `window.innerHeight - 48px` (nav bar)
+   - **Horizontal overflow**: any element `scrollWidth > clientWidth`
+   - **Text clipping**: headings/paragraphs with `overflow: hidden` and truncated content
+   - **Grid wrapping**: team/tech grid items breaking onto too many rows
+   - **Nav-bar collision**: content covered by `.nav-bar`
+
+### 5.3 Per-Slide Checklist
+
+| Slide | Specific Checks |
+|-------|-----------------|
+| 1. Cover | `project-name` fits one line; `client-name` not wrapping mid-word; `project-date` visible above copyright |
+| 2. Team | All members fit in grid without overflow; avatars not clipped; Leadership + Project Team both visible |
+| 3. Index | All 8 sections visible without scroll |
+| 4. Tech Stack | 2-column grid aligned; icons and text vertically centered in each card |
+| 5. Timeline (Gantt) | All week columns visible; phase-col text not truncated; bars aligned to correct weeks |
+| 6. Weekly Tasks | Cards fit grid; if too many → vertical scroll works; no horizontal scroll |
+| 7. Communication | Two info-cards equal width; text fits in card |
+| 8. Deliverables | Two info-cards equal width; text fits in card |
+| 9. Meeting Agenda | All items visible without scroll |
+| 10. Q&A | Centered; no overflow |
+| 11. Thank You | Centered; copyright at bottom, not clipped |
+
+### 5.4 Fix Issues
+
+For each issue found, classify and apply the fix:
+
+**Structural issue** (CSS/layout) → Fix in **BOTH** the generated HTML AND the skill template
+- Examples: font-size too large causing wrap, grid column count wrong, padding misalignment, gap insufficient, max-width too small
+- Propagate to: `~/.claude/skills/project-kickoff/skill.md` (section 4.4 CSS)
+- Rationale: future generations benefit from the fix
+
+**Content-specific issue** → Fix in the generated HTML only
+- Examples: a particularly long client name needs `<br>`, a project name is too long for the chosen font-size, a team has 8+ members instead of typical 5
+- Do NOT propagate to skill.md — these are project-specific
+
+### 5.5 Re-Verify
+
+After applying fixes, re-run Step 5.2 inspection to confirm all issues are resolved. Maximum **3 iterations**; if issues persist after 3 rounds, report the remaining ones to the user in Step 6 and let them decide.
+
+### 5.6 Close Browser
+
+Close the Playwright browser session after verification is complete (pass or max iterations).
+
+### 5.7 QA Report (feed into Step 6)
+
+Collect findings for the final report:
+- Slides inspected: N
+- Issues found: M
+- Issues auto-fixed: K
+- Issues propagated to skill.md: J (structural only)
+- Remaining issues: M - K (reported to user)
+
+---
+
+## Step 6: Report Result
 
 ### Success Message
 
 ```
-Kickoff presentation generated.
+Kickoff presentation generated and verified.
 
 File: [OUTPUT_PATH]
 Slides: [SLIDE_COUNT]
 Project: [PROJECT_NAME]
 Client: [CLIENT_NAME]
 Duration: [START] ~ [END] ([N] weeks)
+
+QA (Playwright, 1920×1080):
+- Slides inspected: [N]
+- Issues found: [M]
+- Auto-fixed in HTML: [K]
+- Propagated to skill template: [J]
+- Remaining issues: [M - K] ([list or "none"])
 
 Open the HTML file in a browser to present.
 - Arrow keys: Navigate slides
@@ -1025,6 +1114,9 @@ Open the HTML file in a browser to present.
 | Duration not provided | Ask via AskUserQuestion |
 | Phase breakdown unclear | Provide sensible defaults, ask to confirm |
 | User cancels at confirmation | Stop and report |
+| Playwright MCP unavailable | Skip Step 5 QA, warn user in Step 6 report, continue with HTML file |
+| QA iteration limit reached (3) | Report remaining issues in Step 6, let user decide whether to fix manually |
+| Screenshot/inspection fails mid-run | Close browser, report partial QA results, do not block the final output |
 
 ---
 

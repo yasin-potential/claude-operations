@@ -12,6 +12,9 @@ Create a minimal, step-by-step SOP and publish it to the Potential Dashboard SOP
 > - This skill does NOT use Notion. All SOPs live in the in-app SOPs feature.
 > - The SOP body uses exactly three sections: **Purpose**, **Steps**, **Done criteria**. Do not add other sections.
 > - Every employee (PM, designer, developer) can run this skill.
+> - **Conversation language**: match the user's language (Korean user → converse in Korean, English user → converse in English). This applies to AskUserQuestion prompts, status messages, and confirmations.
+> - **Draft language**: the review draft (Step 5) is always shown in the user's conversation language so they can read it comfortably.
+> - **Final artifact language**: the SOP that is actually created on pm.potentialai.com is always in **English**, regardless of conversation language. After the user approves the draft, translate the approved content to English before the `POST /api/sops` call. This is a hard rule — no Korean SOPs are published.
 
 ---
 
@@ -40,22 +43,23 @@ Usage: /generate-sop How to install 1Password for new employees
 
 ### Step 2 — Collect metadata (AskUserQuestion)
 
-Ask the user for all of these in a single AskUserQuestion call:
+Phrase these questions in the user's conversation language (Korean or English). Ask the user for all of these in a single AskUserQuestion call:
 
 1. **Team** — `DEV` or `PM` (required).
-2. **Language** — `ko` (default) or `en`.
-3. **isForClient** — `false` (default) or `true`.
-4. **Status** — `DRAFT` (default) or `PUBLISHED`.
-5. **Link to ticket template?** — `skip` (default) or `link`.
+2. **isForClient** — `false` (default) or `true`.
+3. **Status** — `DRAFT` (default) or `PUBLISHED`.
+4. **Link to ticket template?** — `skip` (default) or `link`.
+
+Note: the SOP `language` field sent to the API is **always `en`** — do not ask the user. The final artifact is always English.
 
 If the user chose `link`:
 - Ensure login cookie (see Step 5.1), then `GET /api/ticket-templates?limit=100&isActive=true`.
 - Present the list (title + id) via AskUserQuestion and let the user pick one.
 - Fetch the template detail (`GET /api/ticket-templates/:id`) and show its `checklistTemplate` items with their indexes. Ask which checklist item index to attach the new SOP to.
 
-### Step 3 — Draft the SOP body
+### Step 3 — Draft the SOP body (in user's conversation language)
 
-Generate the HTML `description` using exactly this structure. Write in the chosen language. One action per step, imperative mood, no filler.
+Generate the HTML `description` using exactly this structure. **Write this draft in the user's conversation language** (Korean for Korean users, English for English users) so the user can review it naturally. One action per step, imperative mood, no filler.
 
 ```html
 <h2>Purpose</h2>
@@ -99,19 +103,31 @@ Parse the returned JSON `url` field. Splice an `<img>` tag into that step's `<li
 
 If upload fails, report the error and ask whether to retry, skip, or abort.
 
-### Step 5 — Show draft and request approval
+### Step 5 — Show draft and request approval (user's language)
 
 Print:
-- SOP title
-- Metadata (team, language, status, isForClient, linked template if any)
-- Full HTML `description`
+- SOP title (in user's language)
+- Metadata (team, status, isForClient, linked template if any)
+- Full HTML `description` (in user's language — the one drafted in Step 3)
 - Uploaded image count
 
-Ask: "Approve and create, or request changes?" Loop on change requests until approval.
+Ask in the user's language: "Approve and create, or request changes?" Loop on change requests until approval. All edits happen on the user-language draft so the user can read them.
 
-### Step 6 — Create the SOP
+### Step 6 — Translate approved draft to English
 
-#### 6.1 Ensure login cookie
+Once the user approves, translate the final title and HTML `description` to English. Preserve:
+- The HTML structure exactly (`<h2>`, `<ol>`, `<li>`, `<ul>`, `<img>` tags and their order).
+- All `<img src="...">` URLs unchanged.
+- Step count and order.
+- The three section headings become exactly: `Purpose`, `Steps`, `Done criteria`.
+
+Use natural, concise English in imperative mood. This English version is the **final artifact** — it is what gets sent to the API.
+
+Before proceeding to Step 7, print a short confirmation in the user's language such as "영어로 번역 완료. 이제 SOP를 생성합니다." / "Translation complete. Creating the SOP now." Do NOT ask for re-approval of the English version — the user already approved the content; translation is mechanical.
+
+### Step 7 — Create the SOP
+
+#### 7.1 Ensure login cookie
 
 If `/tmp/phc-cookies.txt` does not exist, re-login:
 
@@ -123,16 +139,18 @@ curl -s -c /tmp/phc-cookies.txt -X POST https://pm.potentialai.com/api/auth/logi
 
 If any subsequent call returns HTTP 401, re-run the login command and retry once.
 
-#### 6.2 Create the SOP
+#### 7.2 Create the SOP
+
+Use the **English-translated** title and description from Step 6. `language` is hardcoded to `"en"`.
 
 ```bash
 curl -s -b /tmp/phc-cookies.txt -X POST https://pm.potentialai.com/api/sops \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "<SOP title>",
-    "description": "<full HTML description from Step 4>",
+    "title": "<English SOP title>",
+    "description": "<English HTML description from Step 6>",
     "team": "PM",
-    "language": "ko",
+    "language": "en",
     "status": "DRAFT",
     "isForClient": false
   }'
@@ -140,7 +158,7 @@ curl -s -b /tmp/phc-cookies.txt -X POST https://pm.potentialai.com/api/sops \
 
 Capture the returned `id`. If the response is not a valid JSON with an `id`, report the error and stop.
 
-### Step 7 — Optional: attach to ticket template checklist item
+### Step 8 — Optional: attach to ticket template checklist item
 
 Only if the user chose to link in Step 2:
 
@@ -157,17 +175,17 @@ curl -s -b /tmp/phc-cookies.txt -X PATCH \
 
 4. Verify the response reflects the new `sopIds` on the target item.
 
-### Step 8 — Return result
+### Step 9 — Return result
 
-Print:
+Print (in user's conversation language for labels if Korean user, values always English):
 
 ```
 ## SOP Created
 
-Title:      <SOP title>
+Title:      <English SOP title>
 Id:         <sop id>
 Team:       <DEV|PM>
-Language:   <en|ko>
+Language:   en
 Status:     <DRAFT|PUBLISHED>
 Images:     <N uploaded>
 Linked to:  <template title, checklist item #index  — or "none">

@@ -44,6 +44,7 @@ Global에서 수정한 스킬을 operations 구조에 자동 반영 후 커밋�
 | `fullstack/*/` | `{child-name}` |
 | `git-workflow/*/` | `{child-name}` |
 | `prd/*/` | `{child-name}` |
+| `project-lifecycle/*/` | `{child-name}` |
 | Top-level (e.g. `code-cleanup/`) | `{dir-name}` |
 
 ## First-time Setup

@@ -251,6 +251,49 @@ Use these when you need to audit a specific layer only.
 
 ---
 
+## F. Project Lifecycle (6 skills — `skills/project-lifecycle/`)
+
+End-to-end artifacts for a client engagement: launch → weekly/daily reporting → close.
+
+### Pipeline Flow
+
+```
+Contract signed (draft PRD)
+  └─→ /project-launch  (orchestrator)
+        ├─→ Kickoff HTML presentation
+        └─→ Project Overview Slack Canvas
+             (regenerate standalone later with /project-kickoff or /project-overview)
+
+Ongoing phase
+  ├─→ /weekly-meeting  (weekly)   → agenda.md + client presentation.html
+  └─→ /daily-report    (daily)    → cross-project Slack summary (cron-friendly)
+
+Project completion
+  └─→ /project-close   → pre-close check → deliverables → client guide → cleanup → closing report
+```
+
+### Skill Details
+
+| Skill | Command | When to Use | Output |
+|-------|---------|-------------|--------|
+| **project-launch** | `/project-launch [--project N] [--client N] [--channel N]` | Project start (contract signed, draft PRD) | Kickoff HTML + Slack Canvas (single unified interview) |
+| **project-kickoff** | `/project-kickoff` | Regenerate kickoff HTML only | Branded HTML slide presentation (11 slides) |
+| **project-overview** | `/project-overview [--update <canvas_id>]` | Create/update Slack Canvas standalone | Korean Project Overview Slack Canvas |
+| **weekly-meeting** | `/weekly-meeting [--project N] [--week N]` | Weekly client meeting prep | Agenda markdown + client presentation HTML |
+| **daily-report** | `/daily-report [--date N] [--project N] [--dry-run]` | Daily dev summary (weekdays 9 AM cron) | Korean Slack report grouped by project |
+| **project-close** | `/project-close` | Project completion | 5-phase closing: check → deliverables → client guide → repo cleanup → HTML closing report |
+
+**Notes:**
+- `project-launch` is an **orchestrator** — runs ONE unified interview and produces BOTH the kickoff HTML and the Slack Canvas. Prefer this at project start over running `/project-kickoff` + `/project-overview` separately
+- `project-launch` auto-reads `CLAUDE.md` and `.claude-project/` for project name, design system variants, user stories, and PRD drafts — skipping detected fields in the interview
+- `weekly-meeting` auto-collects git log, prior meeting notes (carry-forward), and scope docs; interview covers only items the codebase can't infer (Slack excerpts, blockers, client feedback)
+- `weekly-meeting` reuses the CSS framework and slide structure from `project-kickoff` for visual consistency — all client-facing materials share one design language
+- `daily-report` requires `SLACK_DAILY_REPORT_WEBHOOK` env var (or `~/.claude/config/daily-report.json`); use `--dry-run` to preview without sending
+- `daily-report` scans repos under `~/Desktop/potential/projects/client/` and filters commits to client-worthy updates only (excludes refactor, test, ci, docs, chore)
+- `project-close` runs pre-close checks BEFORE generating deliverables — blockers in pre-close halt the pipeline
+
+---
+
 ## Skill Pipelines & Dependencies
 
 ```
@@ -273,6 +316,13 @@ QA Pipeline (/qa-scan orchestrates):
 
 Training Pipeline:
   /generate-random-project ──→ /generate-prd (auto-triggered)
+
+Project Lifecycle (/project-launch orchestrates at start):
+  /project-launch ──┬──→ /project-kickoff   (regenerate HTML)
+                    └──→ /project-overview  (regenerate/update Canvas)
+  /weekly-meeting (weekly)
+  /daily-report   (daily, weekdays 9 AM)
+  /project-close  (end of engagement)
 ```
 
 ---
@@ -285,7 +335,10 @@ Training Pipeline:
 | Google Chrome | generate-korean-prd, generate-invoice |
 | Logo at `.claude/templates/logo.svg` | generate-korean-prd, generate-invoice, generate-ppt |
 | Running backend + frontend servers | qa-runtime |
-| Playwright installed | qa-runtime |
+| Playwright installed | qa-runtime, project-kickoff (QA verification), project-launch |
+| Slack MCP integration | project-launch, project-overview |
+| `SLACK_DAILY_REPORT_WEBHOOK` env var (or `~/.claude/config/daily-report.json`) | daily-report |
+| `.claude-project/docs/clients/weekly/` writable | weekly-meeting (auto-created) |
 | Git repository with remote | create-dev-pr, code-cleanup |
 | Node.js 18+ | store-native |
 | Capacitor installed | store-native, store-build |

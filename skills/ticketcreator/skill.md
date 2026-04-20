@@ -36,27 +36,55 @@ Before generating, assess whether the request contains multiple independently tr
 
 `General` · `Bug` · `Change Request` · `Requirement` · `Setup` · `Onboarding` · `Integration` · `Config` · `Team`
 
-## Due Date Estimation
+## Size Estimation (Claude Code Adjusted)
 
-All teams use Claude Code, so estimate aggressively. Always recommend a due date based on complexity:
+All teams use Claude Code. Estimate in two steps:
 
-| Complexity | Duration (business days) | Criteria |
+### Step 1: Raw Estimate (without AI)
+
+Estimate how long a developer would take **without** Claude Code (conservative baseline).
+
+### Step 2: Apply Claude Code Coefficient
+
+| Work Type | Coefficient | Examples |
 |---|---|---|
-| Trivial | Same day (D+0) | Config change, text fix, simple bug with clear cause |
-| Small | 1 day (D+1) | Single API/screen change, straightforward feature addition |
-| Medium | 2 days (D+2) | Multi-file coordination, new feature module, DB migration |
-| Large | 3+ days → **Action Plan** | Cross-module feature, schema redesign, multi-service integration |
+| Pure Development | **× 1/5** | CRUD, UI changes, new feature, refactoring, migration |
+| Integration / Debugging / Infra | **× 1/3** | External API integration, complex bug investigation, CI/CD, environment setup |
+
+**Floor:** minimum **1 hour** regardless of calculation.
+
+### Step 3: Determine Size and Due Date
+
+`Adjusted Size = max(raw estimate × coefficient, 1)`
+
+| Adjusted Size | Due Date | Action |
+|---|---|---|
+| 1–3h | Same day (D+0) | Single ticket |
+| 4–6h | 1 day (D+1) | Single ticket |
+| 7–9h | 1–2 days (D+1~D+2) | Single ticket |
+| 10–27h | Split needed | Split into sub-tickets (each ≤ 9h) |
+| 28h+ (≥4 days) | **Action Plan** | Action Plan Request ticket |
 
 **Rules:**
 - Calculate from today's date, skip weekends (Mon-Fri only)
-- Bug/Config categories: bias toward Trivial/Small
-- Integration/Requirement categories: bias toward Medium+
+- Bug/Config categories: bias toward Pure Development coefficient
+- Integration/Requirement categories: bias toward Integration coefficient
 - If user provides a due date, use it; otherwise always recommend one
-- Show reasoning: `Complexity: {level} → Due: {YYYY-MM-DD} ({N} business days)`
+- Show reasoning: `Raw: {N}h ({work type}) × 1/{coeff} = {adjusted}h → Size: {size} → Due: {YYYY-MM-DD}`
 
-## Action Plan Request (>2 business days / 16h)
+## Sub-ticket Splitting (10–27h)
 
-If estimated work exceeds **2 business days (16 hours)** — i.e., complexity is **Large (3+ days)** — do NOT create a regular ticket. Instead:
+If adjusted size exceeds **9 hours** but is under **28 hours**, split into sub-tickets:
+
+1. Break the scope into independently trackable units, each **≤ 9 hours**
+2. Each sub-ticket gets its own Title, Priority, Category, Due Date, Size, and Description
+3. Titles should reflect sequential or logical grouping (e.g., `[1/3] ...`, `[2/3] ...`)
+4. Due dates should be staggered across business days
+5. Ask the user to confirm the split before generating
+
+## Action Plan Request (28h+ / ≥4 business days)
+
+If adjusted size is **28 hours or more**, the scope is too large for direct splitting. Do NOT create regular tickets. Instead:
 
 1. **Create an Action Plan Request ticket** with:
    - Title prefixed with `[Action Plan]`
@@ -66,7 +94,7 @@ If estimated work exceeds **2 business days (16 hours)** — i.e., complexity is
 
 2. **Use the Action Plan Request template** (see below) instead of the category-specific template
 
-3. **Inform the user**: explain that the request is estimated at 3+ days, so an Action Plan Request ticket is generated instead. The developer will analyze the scope with Claude Code and create daily sub-tickets.
+3. **Inform the user**: explain that the total scope is 28h+, so an Action Plan Request ticket is generated instead. The developer will analyze the scope with Claude Code and create sub-tickets.
 
 ## Output Format
 
@@ -78,7 +106,7 @@ Output all fields needed for the ticket form:
 **Priority:** {Low / Medium / High / Critical}
 **Category:** {category}
 **Due Date:** {YYYY-MM-DD}
-**Complexity:** {Trivial/Small/Medium/Large} → {N} business days
+**Size:** {1-9} — Raw: {N}h ({work type}) × 1/{coeff} = {adjusted}h
 ```
 
 Then output the **Description** using the category-specific template below.
@@ -87,62 +115,93 @@ Then output the **Description** using the category-specific template below.
 
 ## Description Templates by Category
 
+**All templates use the same core structure: Why / Situation / Problem / Expected (optional) / Test Checklist.**
+- **Why**: Background and intent — why this ticket exists, who it affects. **Max 2 sentences.**
+- **Situation**: Factual current state — what exists today, how it works. **Max 2 sentences.**
+- **Problem**: What is wrong or missing in the current situation. **Max 2 sentences.**
+- **Expected** *(optional)*: Observable target state after completion. Omit when the problem already implies an obvious solution. When included: **max 3 items, flat list, no nested bullets or bold sub-headers, no implementation prescriptions.**
+- **Test Checklist**: Only the most important observable verifications. **Max 2 items.** Skip items that just restate Expected — include only verifications that add real value (e.g., regression risks, edge cases).
+
+Solutions, fix approaches, and implementation details are **never** included — the assignee decides how to solve it.
+
+## Brevity Principle
+
+Tickets are for developers who scan, not read. Prefer short over complete. If a reader can infer it, cut it. Long tickets signal PM insecurity, not thoroughness.
+
 ### General
 
 ```
-### Context
-{Background and purpose}
+### Why
+{Background and intent}
 
-### Details
-{What needs to be done or communicated}
+### Situation
+{Current state}
 
-### Acceptance Criteria
-- [ ] {Criterion}
+### Problem
+{What is wrong or missing}
+
+### Expected
+{Target state — omit if obvious from Problem}
+
+### Test Checklist
+- [ ] {Observable verification}
 ```
 
 ### Bug
 
 ```
-### Steps to Reproduce
-1. {Step — start with the page/feature where the bug occurs}
+### Why
+{Who is affected, how it hurts them}
 
-### Current Behavior
-{What actually happens — observable only}
+### Situation
+1. {Steps to reproduce — start with the page/feature}
 
-### Expected Behavior
-{What should happen instead}
+### Problem
+{What the user actually sees}
+
+### Expected
+{What the user should see instead}
 
 ### Test Checklist
-- [ ] {Verification}
+- [ ] {Observable verification}
 ```
 
 ### Change Request
 
 ```
-### Context
-{Why this feature exists, who uses it, why change is needed}
+### Why
+{Who requested, business reason}
 
-### Current Situation
-{What is the current state — observable behavior}
+### Situation
+{Current behavior}
 
-### Expected Behavior
-{Numbered sections with bold headers per distinct change}
+### Problem
+{What needs to change and why}
+
+### Expected
+{Target behavior — omit if obvious from Problem}
 
 ### Test Checklist
-- [ ] {Verification per behavior change}
+- [ ] {Observable verification}
 ```
 
 ### Requirement
 
 ```
-### Context
-{Business need, target users, motivation}
+### Why
+{Business need, target users}
 
-### Requirement
-{What the new feature should do — user-facing description}
+### Situation
+{What the user cannot do today}
 
-### Acceptance Criteria
-- [ ] {Criterion}
+### Problem
+{Gap or limitation}
+
+### Expected
+{User-facing capability after completion}
+
+### Test Checklist
+- [ ] {Observable verification}
 
 ### Out of Scope
 {Explicitly excluded items, if any}
@@ -151,27 +210,39 @@ Then output the **Description** using the category-specific template below.
 ### Setup
 
 ```
-### Context
-{What needs to be set up and why}
+### Why
+{Why this setup is needed}
 
-### Scope
-{Systems/tools/environments involved}
+### Situation
+{Current environment/tool state}
 
-### Steps
-1. {Step}
+### Problem
+{What is missing or blocking}
 
-### Done Criteria
-- [ ] {Verification}
+### Expected
+{Target state after setup — omit if obvious}
+
+### Test Checklist
+- [ ] {Observable verification}
 ```
 
 ### Onboarding
 
 ```
-### Context
+### Why
 {Who is being onboarded, role, timeline}
 
-### Tasks
-- [ ] {Task}
+### Situation
+{What access/resources they have today}
+
+### Problem
+{What is missing for them to start}
+
+### Expected
+{What access/resources they should have}
+
+### Test Checklist
+- [ ] {Observable verification}
 
 ### Resources
 {Links, docs, credentials to provide}
@@ -180,46 +251,61 @@ Then output the **Description** using the category-specific template below.
 ### Integration
 
 ```
-### Context
+### Why
 {Which systems, why integration is needed}
 
-### Scope
-{Data flow, endpoints, services}
+### Situation
+{Current connection state}
 
-### Requirements
-{What the integration should achieve}
+### Problem
+{What is not connected or working}
+
+### Expected
+{Integration outcome — omit if obvious}
 
 ### Test Checklist
-- [ ] {Verification}
+- [ ] {Observable verification}
 ```
 
 ### Config
 
 ```
-### Context
-{What needs to be configured and why}
+### Why
+{Why this config change is needed}
 
-### Changes
-{Current state → Desired state}
+### Situation
+{Current configuration state}
+
+### Problem
+{What is misconfigured or missing}
+
+### Expected
+{Target configuration state — omit if obvious}
 
 ### Affected Environments
 {Dev / Staging / Production}
 
-### Verification
-- [ ] {Confirmation}
+### Test Checklist
+- [ ] {Observable verification}
 ```
 
 ### Team
 
 ```
-### Context
-{What team matter needs attention}
+### Why
+{Why this team matter needs attention}
 
-### Details
-{Roles, responsibilities, process changes}
+### Situation
+{Current team state or process}
 
-### Action Items
-- [ ] {Action}
+### Problem
+{What is not working}
+
+### Expected
+{Target team state or process — omit if obvious}
+
+### Test Checklist
+- [ ] {Observable verification}
 ```
 
 ### Action Plan Request
@@ -227,32 +313,43 @@ Then output the **Description** using the category-specific template below.
 Used automatically when complexity exceeds 2 business days (16h).
 
 ```
-### Context
-{Background: what the user/PM originally requested and why}
+### Why
+{What the user/PM originally requested and why}
 
-### Scope Summary
-{High-level description of what needs to be done — PM perspective, no implementation details}
+### Situation
+{Current state relevant to the request}
+
+### Problem
+{Why this cannot be done as a single ticket}
+
+### Expected Deliverables
+- Action plan broken into **sub-tickets** (each ≤ 9 hours, Claude Code adjusted)
+- Each sub-ticket must have: Title, Priority, Category, Due Date, Size (1-9), Test Checklist
+- Sub-tickets should be independently verifiable by PM
 
 ### Constraints
 {Deadlines, dependencies on other teams/features, environment requirements}
 
-### Expected Deliverables
-- Action plan broken into **daily sub-tickets** (max 1 business day each, ≤8h)
-- Each sub-ticket must have: Title, Priority, Category, Due Date, Acceptance Criteria
-- Sub-tickets should be independently verifiable by PM
-
-### Acceptance Criteria
+### Test Checklist
 - [ ] Action plan delivered by end of day
-- [ ] Each sub-ticket is ≤1 business day of work
+- [ ] Each sub-ticket is ≤ 9 hours (Size 1-9)
 - [ ] Sub-tickets cover the full scope of the original request
-- [ ] Each sub-ticket has clear, observable acceptance criteria
+- [ ] Each sub-ticket has an observable Test Checklist
 ```
 
 ---
 
-## API Upload Flow
+## Delivery
 
-After generating the ticket output, ask the user to confirm before uploading.
+By default, output the ticket as **text only** in the conversation. After presenting the ticket, ask:
+
+> **API로 직접 올릴까요?**
+
+Only proceed with API upload if the user confirms.
+
+## API Upload Flow (optional)
+
+Only execute when the user explicitly requests upload.
 
 ### Step 1: Authenticate
 
@@ -313,6 +410,7 @@ curl -s -b /tmp/phc-cookies.txt -X POST \
 | Priority | `priority` | Uppercase + `Critical` → `URGENT` |
 | Category | `category` | Uppercase + spaces to `_` (e.g., `Change Request` → `CHANGE_REQUEST`) |
 | Due Date | `dueDate` | As-is (YYYY-MM-DD) |
+| Size | `size` | Integer 1-9 (estimated hours, Claude Code adjusted) |
 | Description | `description` | Convert markdown to HTML (see below) |
 | — | `assigneeIds` | Resolved from project memory (see Step 3). Never hardcoded. |
 
@@ -364,9 +462,14 @@ On failure (e.g., 401), re-authenticate and retry once. If still failing, show t
 ## Rules
 
 1. **English only** — All ticket content in English
-2. **Korean UI text** — Include as-is with English translation in parentheses
+2. **Simple, intuitive English** — Write for a reader whose English is a second language. Short sentences, common words, no jargon or complex grammar. Prefer "user cannot see X" over "X is not rendered in the interface".
+3. **Korean UI text** — Include as-is with English translation in parentheses
 3. **No implementation details** — Zero file paths, code, variable names, function names
-4. **Observable behavior only** — Describe what the user sees, not what the code does
-5. **Infer fields** — Determine Priority and Category from context; confirm if ambiguous
-6. **Scope check** — Suggest splitting if request contains multiple independently trackable units
-7. **Always confirm before upload** — Never auto-upload; always show project name and ask for confirmation
+4. **No solution prescriptions** — Do NOT propose fixes: no column additions, endpoint specs, sub-tabs, progress bars, UI structures, algorithm choices. The assignee decides how to solve it.
+5. **Observable behavior only** — Describe what the user sees, not what the code does
+6. **Problem-focused titles** — Titles describe the problem/situation, not the solution. ❌ "Add category column to Project" → ✅ "Projects cannot be filtered by type"
+7. **Why / Situation / Problem / Expected structure** — All description templates follow this structure plus Test Checklist. Expected is optional — omit when Problem implies an obvious solution.
+7a. **Brevity limits** — Why ≤ 2 sentences, Situation ≤ 2 sentences, Problem ≤ 2 sentences, Expected ≤ 3 flat items (no nested bullets/bold sub-headers), Test Checklist ≤ 2 items (only high-value verifications, not restatements of Expected)
+8. **Infer fields** — Determine Priority and Category from context; confirm if ambiguous
+9. **Scope check** — Suggest splitting if request contains multiple independently trackable units
+10. **Text-first delivery** — Output ticket as text in conversation by default. API upload is optional — only when user requests it
