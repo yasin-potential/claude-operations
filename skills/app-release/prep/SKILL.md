@@ -11,7 +11,7 @@ First step in the store submission pipeline. Collects app information, generates
 
 ## Pre-flight
 
-Before generating any output, execute the **Pre-flight: Gitignore Output Directory** from [Store Shared Reference](../_store-shared/reference.md). This ensures `store-prep/` is in `.gitignore` before any files are created.
+Before generating any output, execute the **Pre-flight: Gitignore Output Directory** from [Store Shared Reference](../_store-shared/reference.md). This ensures `.claude-project/` is in `.gitignore` before any files are created.
 
 ---
 
@@ -19,13 +19,13 @@ Before generating any output, execute the **Pre-flight: Gitignore Output Directo
 
 | Phase | Name | Output |
 |-------|------|--------|
-| 0 | Kickoff | `store-prep/kickoff.md` |
-| 1 | Interview | `store-prep/app-info.md` |
-| 2 | Classify | `store-prep/classification.md` |
-| 3 | Docs | `store-prep/listing-google-play.md`, `store-prep/listing-app-store.md` |
-| 4 | Legal | `store-prep/privacy-policy.md`, `store-prep/terms-of-service.md` |
-| 5 | Client | `store-prep/client-guide.md` |
-| 6 | Tech | `store-prep/tech-checklist.md` |
+| 0 | Kickoff | `.claude-project/store-prep/kickoff.md` |
+| 1 | Interview | `.claude-project/store-prep/app-info.md` |
+| 2 | Classify | `.claude-project/store-prep/classification.md` |
+| 3 | Docs | `.claude-project/store-prep/listing-google-play.md`, `.claude-project/store-prep/listing-app-store.md` |
+| 4 | Legal | `.claude-project/store-prep/privacy-policy.md`, `.claude-project/store-prep/terms-of-service.md` |
+| 5 | Client | `.claude-project/store-prep/client-guide.md` |
+| 6 | Tech | `.claude-project/store-prep/tech-checklist.md` |
 
 ## Usage
 
@@ -44,10 +44,10 @@ When no argument is provided, run all phases in order (0→6). When a specific p
 
 ## Output Artifacts
 
-All output files are written to the `store-prep/` directory in the project root:
+All output files are written to the `.claude-project/store-prep/` directory in the project root:
 
 ```
-store-prep/
+.claude-project/store-prep/
 ├── kickoff.md               # Team notification & feature scoping results
 ├── app-info.md              # App overview, features, data collection
 ├── classification.md        # Store category analysis & risk assessment
@@ -127,7 +127,7 @@ Identify the client's account situation early because it directly impacts the ti
 - If accounts are not ready, this becomes the critical path blocker.
 ```
 
-### Output: `store-prep/kickoff.md`
+### Output: `.claude-project/store-prep/kickoff.md`
 ```markdown
 # Kickoff
 
@@ -192,7 +192,7 @@ Only ask the PM for market/business decisions that cannot be determined from cod
 
 Present these as multiple-choice options, not open-ended questions.
 
-### Output: `store-prep/app-info.md`
+### Output: `.claude-project/store-prep/app-info.md`
 Structure:
 ```markdown
 # App Information
@@ -249,7 +249,7 @@ Determine the appropriate store category and identify any additional requirement
    - **Social/Communication**: Content moderation, reporting mechanisms
 4. Flag any elevated risk areas that may trigger extended review
 
-### Output: `store-prep/classification.md`
+### Output: `.claude-project/store-prep/classification.md`
 Structure:
 ```markdown
 # Store Category Classification
@@ -282,7 +282,7 @@ Generate complete store listing text for both Google Play and App Store, ready f
 ### Source
 All text is auto-generated from PRD + i18n analysis. Present to PM for review after generation.
 
-### Output: `store-prep/listing-google-play.md`
+### Output: `.claude-project/store-prep/listing-google-play.md`
 ```markdown
 # Google Play Store Listing
 
@@ -306,7 +306,7 @@ All text is auto-generated from PRD + i18n analysis. Present to PM for review af
 ## Privacy Policy URL
 ```
 
-### Output: `store-prep/listing-app-store.md`
+### Output: `.claude-project/store-prep/listing-app-store.md`
 ```markdown
 # App Store Listing
 
@@ -349,7 +349,7 @@ Generate privacy policy and terms of service drafts based on actual app data col
 - Health/medical apps MUST include a "does not replace professional medical treatment" disclaimer.
 - Legal documents should follow the format appropriate for the service country's privacy laws.
 
-### Privacy Policy: `store-prep/privacy-policy.md`
+### Privacy Policy: `.claude-project/store-prep/privacy-policy.md`
 Sections to include:
 1. **Service overview** — What the app does, who operates it
 2. **Collected data items** — Itemized list with collection method (direct input, automatic, third-party)
@@ -370,7 +370,7 @@ After generating the privacy policy, present the detected data collection items 
 - Ask PM to confirm, add missing items, or remove incorrect items
 - Update the privacy policy based on PM feedback
 
-### Terms of Service: `store-prep/terms-of-service.md`
+### Terms of Service: `.claude-project/store-prep/terms-of-service.md`
 Sections to include:
 1. **Service definition and purpose** — What the service provides
 2. **Account registration** — Requirements, responsibilities
@@ -388,12 +388,12 @@ Sections to include:
 ## Phase 5: Client (Client Delivery Document)
 
 ### Reference
-Use `claude-operations/docs/references/service-launch-checklist.md` as the master checklist source. This reference contains all launch items with conditional tags (`ALL`, `APP`, `ORG`, `PAID`, `PAY`, `SOCIAL`, `HEALTH`, `TRACK`). Filter applicable items based on the project profile determined in Phase 1 (Interview), then extract the **client-side items** into the output below.
+Use `claude-operations/resources/docs/references/service-launch-checklist.md` as the master checklist source. This reference contains all launch items with conditional tags (`ALL`, `APP`, `ORG`, `PAID`, `PAY`, `SOCIAL`, `HEALTH`, `TRACK`). Filter applicable items based on the project profile determined in Phase 1 (Interview), then extract the **client-side items** into the output below.
 
 ### Goal
 Generate a clear guide listing all action items that ONLY the client (app owner/business) can handle — things that require their identity, accounts, or business decisions.
 
-### Output: `store-prep/client-guide.md`
+### Output: `.claude-project/store-prep/client-guide.md`
 Structure:
 ```markdown
 # Client Action Items Guide
@@ -509,7 +509,7 @@ Generate the following email templates in `client-guide.md`, pre-filled with pro
 ### Goal
 Generate a comprehensive technical checklist covering all development work needed to prepare the app for store submission.
 
-### Output: `store-prep/tech-checklist.md`
+### Output: `.claude-project/store-prep/tech-checklist.md`
 Structure:
 ```markdown
 # Technical Checklist
@@ -587,7 +587,7 @@ Structure:
 
 ## General Guidelines
 
-1. **Always create the `store-prep/` directory** in the project root before writing output files.
+1. **Always create the `.claude-project/store-prep/` directory** in the project root before writing output files.
 2. **Check for existing output files** before overwriting. If a file exists, ask the PM whether to overwrite or skip.
 3. **Cross-reference phases** — later phases should reference and build upon earlier phase outputs.
 4. **Keep language consistent** — output documents should match the app's primary language (check i18n / PRD).

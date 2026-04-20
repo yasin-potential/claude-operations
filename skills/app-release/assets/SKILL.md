@@ -25,11 +25,11 @@ Generates scripts for **Playwright-based screenshot capture (one-time)** + **bro
 
 ## Pre-flight
 
-Before generating any output, execute the **Pre-flight: Gitignore Output Directory** from [Store Shared Reference](../_store-shared/reference.md). This ensures `store-prep/` is in `.gitignore` before any files are created.
+Before generating any output, execute the **Pre-flight: Gitignore Output Directory** from [Store Shared Reference](../_store-shared/reference.md). This ensures `.claude-project/` is in `.gitignore` before any files are created.
 
 ## Prerequisites
 
-- `/store-prep` must be completed and `store-prep/app-info.md` must exist
+- `/store-prep` must be completed and `.claude-project/store-prep/app-info.md` must exist
 - If it does not exist, gather basic information by asking questions
 
 ---
@@ -45,7 +45,7 @@ Before generating any output, execute the **Pre-flight: Gitignore Output Directo
    Glob: **/splash*.{png,jpg,svg}
    Glob: **/screenshot*.{png,jpg}
    Glob: **/feature*.{png,jpg}
-   Glob: store-prep/assets/**
+   Glob: .claude-project/store-prep/assets/**
    Glob: frontend/public/**/*.{png,jpg,svg,ico}
    ```
 
@@ -92,7 +92,7 @@ Before generating any output, execute the **Pre-flight: Gitignore Output Directo
 If a source icon exists, a Sharp-based resizing script is **automatically generated and executed**:
 
 ```javascript
-// store-prep/assets/icons/resize-icons.js
+// .claude-project/store-prep/assets/icons/resize-icons.js
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
@@ -151,11 +151,11 @@ resize().catch(console.error);
    Glob: **/logo*.{png,svg}
    ```
 2. If original exists:
-   - Create `store-prep/assets/icons/` directory
+   - Create `.claude-project/store-prep/assets/icons/` directory
    - Copy original as `icon-original.png`
    - Check Sharp installation (`npm list sharp` or `npm install sharp`)
    - Generate `resize-icons.js`
-   - Execute script: `node store-prep/assets/icons/resize-icons.js`
+   - Execute script: `node .claude-project/store-prep/assets/icons/resize-icons.js`
 3. If no original:
    - Provide icon design guidelines
    - Generate external design commission spec document
@@ -220,7 +220,7 @@ c) Not sure
      - [N] screenshots at 1080×1920 (Google Play)
      - [N] screenshots at 2048×2732 (iPad 13", if applicable)
      ```
-   - Save brief to `store-prep/assets/screenshots/designer-brief.md`
+   - Save brief to `.claude-project/store-prep/assets/screenshots/designer-brief.md`
    - Tell PM to forward this brief to their designer
    - Register as **client blocker** — screenshot pipeline resumes when designer delivers assets
 
@@ -265,7 +265,7 @@ Screenshot generation follows a **"Capture once → Browser designer → Save"**
 1. **Project analysis**:
    ```
    Grep: Route|path in frontend/app/routes* → Extract main routes
-   Read: store-prep/app-info.md → Check key features
+   Read: .claude-project/store-prep/app-info.md → Check key features
    Grep: login|auth in frontend/ → Identify auth method
    Read: CLAUDE.md → Check demo account info
    ```
@@ -333,7 +333,7 @@ Screenshot generation follows a **"Capture once → Browser designer → Save"**
      });
    }
 
-   // ===== Output: Save to store-prep/assets/screenshots/raw/ folder =====
+   // ===== Output: Save to .claude-project/store-prep/assets/screenshots/raw/ folder =====
    // Filename: 01-home.png, 02-exercise.png, ... (sequence-screenname.png)
    ```
 
@@ -344,8 +344,8 @@ Screenshot generation follows a **"Capture once → Browser designer → Save"**
    import * as fs from 'fs';
    import * as path from 'path';
 
-   const RAW_DIR = 'store-prep/assets/screenshots/raw';
-   const OUTPUT = 'store-prep/assets/screenshots/designer.html';
+   const RAW_DIR = '.claude-project/store-prep/assets/screenshots/raw';
+   const OUTPUT = '.claude-project/store-prep/assets/screenshots/designer.html';
 
    // 1. Convert all PNGs in raw/ folder to base64
    const screenshots = fs.readdirSync(RAW_DIR)
@@ -489,7 +489,7 @@ Screenshot generation follows a **"Capture once → Browser designer → Save"**
 6. **Auto-clean existing images on re-capture**:
    Delete existing raw folder before capture and recreate:
    ```bash
-   rm -rf store-prep/assets/screenshots/raw
+   rm -rf .claude-project/store-prep/assets/screenshots/raw
    ```
 
 7. **Execution commands**:
@@ -500,15 +500,15 @@ Screenshot generation follows a **"Capture once → Browser designer → Save"**
    # 2. Verify frontend + backend servers are running
 
    # 3. Capture raw screenshots (one-time)
-   NODE_PATH="./frontend/node_modules" npx tsx store-prep/assets/screenshots/capture-screenshots.ts
+   NODE_PATH="./frontend/node_modules" npx tsx .claude-project/store-prep/assets/screenshots/capture-screenshots.ts
 
    # 4. Build designer HTML + open in browser
-   npx tsx store-prep/assets/screenshots/build-designer.ts
+   npx tsx .claude-project/store-prep/assets/screenshots/build-designer.ts
    # → designer.html automatically opens in browser
    # → Adjust frame/caption/background then export via save button
 
    # 5. (Optional) To modify design only — reopen designer without re-capture
-   start store-prep/assets/screenshots/designer.html
+   start .claude-project/store-prep/assets/screenshots/designer.html
    ```
 
 ### Screenshot Checklist
@@ -527,8 +527,8 @@ Screenshot generation follows a **"Capture once → Browser designer → Save"**
 
 1. Provide splash generation guide based on app icon/logo
 2. Capacitor splash screen setup:
-   - `store-prep/assets/splash/splash.png` (2732 x 2732 px, centered logo)
-   - `store-prep/assets/splash/splash-dark.png` (if dark mode supported)
+   - `.claude-project/store-prep/assets/splash/splash.png` (2732 x 2732 px, centered logo)
+   - `.claude-project/store-prep/assets/splash/splash-dark.png` (if dark mode supported)
 3. Generate Capacitor configuration code:
    ```typescript
    // capacitor.config.ts
@@ -541,9 +541,9 @@ Screenshot generation follows a **"Capture once → Browser designer → Save"**
 
 4. **Sharp splash generation script**:
    ```javascript
-   // store-prep/assets/splash/generate-splash.js
+   // .claude-project/store-prep/assets/splash/generate-splash.js
    const sharp = require('sharp');
-   const ICON = 'store-prep/assets/icons/icon-original.png';
+   const ICON = '.claude-project/store-prep/assets/icons/icon-original.png';
    const SIZE = 2732;
    const ICON_SIZE = 512;
 
@@ -578,7 +578,7 @@ Screenshot generation follows a **"Capture once → Browser designer → Save"**
 ## Full Output Structure
 
 ```
-store-prep/assets/
+.claude-project/store-prep/assets/
 ├── icons/
 │   ├── icon-original.png         # Original (1024x1024+)
 │   ├── icon-playstore.png        # 512x512
