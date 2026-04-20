@@ -1206,6 +1206,74 @@ Use the exact same Potential text-based SVG from kickoff-meeting:
 - Content slides: dark version (`fill="#050042"`)
 - Cover/ThankYou slides: white version (`fill="#ffffff"`)
 
+#### Playwright QA Verification (Auto)
+
+After `closing-presentation.html` is written, **automatically** verify it with Playwright MCP before marking Phase 5 complete. Same mechanism as `/project-kickoff` Step 5.
+
+**5.1 Launch Browser**
+1. Navigate to `file:///<abs path>/project-close/for-client/closing-presentation.html`
+2. Viewport: **1920×1080**
+3. Wait network idle + 500ms
+
+**5.2 Slide-by-Slide Inspection**
+
+Loop slide 0..N-1:
+1. Click `.nav-dot[data-goto="N"]` or press `ArrowRight`
+2. Wait 600ms for transition
+3. Screenshot
+4. DOM checks via `evaluate`:
+   - Vertical overflow past `innerHeight - 48px` (nav bar)
+   - Horizontal `scrollWidth > clientWidth`
+   - Text clipping in headings/paragraphs
+   - Grid items wrapping unexpectedly
+   - Content hidden behind `.nav-bar`
+
+**5.3 Per-Slide Checklist**
+
+| Slide | Checks |
+|-------|--------|
+| Cover | 프로젝트명/클라이언트명 한 줄 유지, 날짜 표시 |
+| Index | 목차 10항목 한 화면 수용 |
+| 프로젝트 개요 | stat cards 정렬, 숫자 잘림 없음 |
+| 구현 기능 | feature-card 그리드 정렬, 체크 아이콘 표시 |
+| 앱 출시 현황 | store 카드 동일 너비, 상태 뱃지 색상 |
+| 서비스 유지 안내 | info-card 텍스트 수용, 줄간격 |
+| 외부 서비스 관리 | renewal-table 컬럼 정렬, 글자 잘림 없음 |
+| 자가진단 안내 | checklist 항목 가독성 |
+| 향후 일정 | timeline 항목 정렬, 라벨/텍스트 수용 |
+| Q&A | 중앙 정렬, 오버플로 없음 |
+| Thank You | 중앙 정렬, 저작권 하단 잘림 없음 |
+
+**5.4 Fix Issues**
+
+- **Structural** (CSS/layout) → Fix in the HTML AND propagate to `~/.claude/skills/project-close/skill.md` Phase 5 CSS block (structural fixes only: font-size, padding, grid, gap, max-width)
+- **Content-specific** → Fix in HTML only (do not propagate)
+
+**5.5 Re-Verify**
+
+Re-inspect after fixes. Max **3 iterations**. Remaining issues → report in Phase 5 output, don't block.
+
+**5.6 Close Browser**
+
+Close Playwright session.
+
+**5.7 QA Report**
+
+Include in Phase 5 completion message:
+```
+QA (Playwright, 1920×1080):
+- Slides inspected: N
+- Issues found: M
+- Auto-fixed: K
+- Propagated to skill.md: J
+- Remaining: M - K
+```
+
+**Error handling**:
+- Playwright MCP unavailable → skip QA, warn in Phase 5 message
+- Iteration limit reached → report remaining issues, continue
+- Mid-run failure → close browser, partial report, do not block Phase 5
+
 ---
 
 ## Execution Algorithm

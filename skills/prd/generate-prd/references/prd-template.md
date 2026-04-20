@@ -486,17 +486,21 @@ Reference `admin-standards.md` for all required standard features applied to thi
 
 ### Additional Questions
 
+> **Every question MUST include a Recommendation** — the PM/dev side's proposed default value with one-line rationale. This lets the client approve-as-is (fast path) or override (with context). Never leave a question open-ended without a proposal.
+>
+> **Exception**: If the item is purely a client policy/content decision that has no reasonable industry default (e.g., specific product names, internal business rules, pricing values), write `— (client-only decision)` in the Recommendation column and explain why in one line.
+
 **Required** — Must be answered before development begins:
 
-| # | Question | Blocks |
-|---|----------|--------|
-| 1 | [Critical question] | [What it blocks] |
+| # | Question | Recommendation | Rationale | Blocks |
+|---|----------|----------------|-----------|--------|
+| 1 | [Critical question] | [Proposed default value] | [Why this default — industry standard / benchmark / technical constraint] | [What it blocks] |
 
 **Recommended** — Development can start but should be answered:
 
-| # | Question | Affects |
-|---|----------|---------|
-| 1 | [Important question] | [What it affects] |
+| # | Question | Recommendation | Rationale | Affects |
+|---|----------|----------------|-----------|---------|
+| 1 | [Important question] | [Proposed default value] | [Why this default] | [What it affects] |
 
 ---
 

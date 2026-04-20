@@ -74,6 +74,21 @@ Framework-agnostic full-stack QA auditing. Works with any frontend (React, Vue, 
 | `create-dev-pr` | Create PR to dev branch | Context-triggered |
 | `code-cleanup` | Analyze and remove dead code | `/code-cleanup` |
 
+### Project Lifecycle (`skills/project-lifecycle/`)
+
+End-to-end artifacts for a client engagement — launch → weekly/daily reporting → close.
+
+| Skill | Description | Usage |
+|-------|-------------|-------|
+| `project-launch` | Project launch orchestrator (kickoff HTML + Slack Canvas, single unified interview) | `/project-launch` |
+| `project-kickoff` | Branded kickoff HTML presentation (regenerate standalone) | `/project-kickoff` |
+| `project-overview` | Project Overview Slack Canvas (create or `--update <canvas_id>`) | `/project-overview` |
+| `weekly-meeting` | Weekly meeting agenda markdown + client presentation HTML | `/weekly-meeting` |
+| `daily-report` | Client-facing daily dev summary across projects → Slack | `/daily-report` |
+| `project-close` | 5-phase closing: pre-close check → deliverables → client guide → repo cleanup → closing report | `/project-close` |
+
+**Workflow:** At project start, prefer `/project-launch` — it runs ONE unified interview and generates both the kickoff HTML and the Slack Canvas. Use `/project-kickoff` or `/project-overview` only when regenerating a single artifact later.
+
 ### Knowledge Base (`skills/kb/`)
 
 | Skill | Description | Usage |
@@ -153,6 +168,19 @@ claude-operations/
 │   ├── git-workflow/
 │   │   └── create-dev-pr/
 │   │       └── SKILL.md
+│   ├── project-lifecycle/
+│   │   ├── project-launch/       ← orchestrator
+│   │   │   └── skill.md
+│   │   ├── project-kickoff/
+│   │   │   └── skill.md
+│   │   ├── project-overview/
+│   │   │   └── skill.md
+│   │   ├── weekly-meeting/
+│   │   │   └── skill.md
+│   │   ├── daily-report/
+│   │   │   └── skill.md
+│   │   └── project-close/
+│   │       └── skill.md
 │   ├── kb/
 │   │   └── skill.md
 │   └── code-cleanup/

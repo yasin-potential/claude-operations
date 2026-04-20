@@ -20,10 +20,11 @@ Updated automatically by `/generate-prd` pipeline (Phase 1.6: Config Allocation)
 | Project | Backend Port | Frontend Ports | Redis Prefix | Cookie (Access) | Cookie (Refresh) | Cookie (Admin) | DB Name | Status |
 |---------|-------------|----------------|--------------|-----------------|-------------------|----------------|---------|--------|
 | activitycoaching | 3000 | 5173, 5174 | activitycoaching: | NestjsStartKit | StarterRefreshToken | AdminToken | activity_coaching_db | active |
+| woorim-market | 3001 | 5175, 5176 | woorimmarket: | WoorimMarketToken | WoorimMarketRefreshToken | WoorimMarketAdminToken | woorim_market_db | active |
 
 ## Next Available Slots
 
 | Key | Value |
 |-----|-------|
-| backend_port | 3001 |
-| frontend_ports | 5175, 5176 |
+| backend_port | 3002 |
+| frontend_ports | 5177, 5178 |
