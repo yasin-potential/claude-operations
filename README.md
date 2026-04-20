@@ -1,10 +1,10 @@
 # claude-operations
 
-Claude Code operations skills - PRD generation, SOP creation, presentations, deployment, workflow automation, and full-stack QA.
+Claude Code operations skills - PRD generation, SOP creation, client meetings, billing, and store submission.
 
 ## Overview
 
-This repo contains operations-focused skills for Claude Code. Add it as a submodule to projects that need document generation, deployment workflows, project management, or automated QA capabilities.
+This repo contains operations-focused skills for Claude Code. Add it as a submodule to projects that need document generation, project management, store submission, or automated QA capabilities.
 
 ## Installation
 
@@ -15,28 +15,40 @@ git submodule add https://github.com/potentialInc/claude-operations.git operatio
 
 ## Available Skills
 
-### PRD Lifecycle (`skills/prd/`)
+### Client — PRD Lifecycle (`skills/client/prd/`)
 
 | Skill | Description | Usage |
 |-------|-------------|-------|
-| `generate-prd` | Generate comprehensive PRD from client input | `/generate-prd <input-file>` |
+| `generate-prd` | Generate complete PRD (Feature + Technical). Default `--full`; `--feature` / `--tech` / `--interview` flags supported. | `/generate-prd [--feature\|--tech\|--full] [--interview] <input-file>` |
 | `generate-korean-prd` | Generate Korean PRD with company watermark | `/generate-korean-prd <input-file>` |
 | `update-prd` | Update PRD with client feedback | `/update-prd <feedback-file>` |
 | `pdf-to-prd` | Convert PRD PDF to structured markdown | `/pdf-to-prd <pdf-file>` |
-| `generate-tech-prd` | Generate Technical PRD (Phase B) from Feature PRD | `/generate-tech-prd <prd-file>` |
 | `input-classifier` | Auto-classify input before PRD modification | Auto-triggered on PRD edit |
 
-### Document Generation (`skills/docs/`)
+### Client — Meetings (`skills/client/meetings/`)
 
 | Skill | Description | Usage |
 |-------|-------------|-------|
-| `generate-ppt` | Generate HTML presentations with branding | `/generate-ppt <topic>` |
-| `generate-sop` | Generate SOP and create in Notion | `/generate-sop <process>` |
-| `generate-invoice` | Generate invoice (견적서) HTML/PDF | `/generate-invoice` |
-| `generate-statement` | Generate transaction statement (거래명세서) HTML/PDF | `/generate-statement` |
-| `generate-project-report` | Generate Korean project result report | `/generate-project-report <repo-path>` |
-| `generate-random-project` | Generate random project specs for training | `/generate-random-project` |
-| `review-command` | Review skill file compatibility | `/review-command <skill-file>` |
+| `kickoff` | Branded kickoff HTML presentation | `/kickoff` |
+| `weekly` | Weekly meeting agenda markdown + client presentation HTML | `/weekly` |
+| `closing` | 5-phase closing pipeline + branded HTML closing presentation | `/closing` |
+
+### Client — Billing / Reports / Presentations (`skills/client/`)
+
+| Skill | Description | Usage |
+|-------|-------------|-------|
+| `generate-invoice` | Invoice (견적서) HTML/PDF | `/generate-invoice` |
+| `generate-statement` | Transaction statement (거래명세서) HTML/PDF | `/generate-statement` |
+| `generate-project-report` | Korean government project result report | `/generate-project-report <repo-path>` |
+
+### Internal Tools (`skills/internal/`)
+
+| Skill | Description | Usage |
+|-------|-------------|-------|
+| `generate-sop` | SOP creation + Notion integration | `/generate-sop <process>` |
+| `kb` | Knowledge base (ingest, compile, query) | `/kb <command> [project]` |
+| `ticketcreator` | Structured ticket generation | `/ticketcreator` |
+| `generate-random-project` | Random project specs for team training | `/generate-random-project` |
 
 ### QA Skills (`skills/qa/`) — 7 individual + 1 orchestrator
 
@@ -52,7 +64,7 @@ Framework-agnostic full-stack QA auditing. Works with any frontend (React, Vue, 
 | `qa-scan` | Universal QA orchestrator (quick/standard/deep) | `/qa-scan [module]` |
 | `qa-ui` | UI/UX layer audit — states, modals, a11y | `/qa-ui [module]` |
 
-### Store Submission (`skills/store/`)
+### App Release (`skills/app-release/`)
 
 | Skill | Description | Usage |
 |-------|-------------|-------|
@@ -65,37 +77,7 @@ Framework-agnostic full-stack QA auditing. Works with any frontend (React, Vue, 
 | `store-review` | Store rejection handling | `/store-review` |
 | `store-ship` | Full pipeline orchestrator | `/store-ship` |
 
-### Workflow Skills
-
-| Skill | Description | Usage |
-|-------|-------------|-------|
-| `deployment` | Deploy to dev/staging/production | Context-triggered |
-| `iteration-manager` | Fullstack pipeline iteration cycles | Context-triggered |
-| `create-dev-pr` | Create PR to dev branch | Context-triggered |
-| `code-cleanup` | Analyze and remove dead code | `/code-cleanup` |
-
-### Project Lifecycle (`skills/project-lifecycle/`)
-
-End-to-end artifacts for a client engagement — launch → weekly/daily reporting → close.
-
-| Skill | Description | Usage |
-|-------|-------------|-------|
-| `project-launch` | Project launch orchestrator (kickoff HTML + Slack Canvas, single unified interview) | `/project-launch` |
-| `project-kickoff` | Branded kickoff HTML presentation (regenerate standalone) | `/project-kickoff` |
-| `project-overview` | Project Overview Slack Canvas (create or `--update <canvas_id>`) | `/project-overview` |
-| `weekly-meeting` | Weekly meeting agenda markdown + client presentation HTML | `/weekly-meeting` |
-| `daily-report` | Client-facing daily dev summary across projects → Slack | `/daily-report` |
-| `project-close` | 5-phase closing: pre-close check → deliverables → client guide → repo cleanup → closing report | `/project-close` |
-
-**Workflow:** At project start, prefer `/project-launch` — it runs ONE unified interview and generates both the kickoff HTML and the Slack Canvas. Use `/project-kickoff` or `/project-overview` only when regenerating a single artifact later.
-
-### Knowledge Base (`skills/kb/`)
-
-| Skill | Description | Usage |
-|-------|-------------|-------|
-| `kb` | Knowledge base management — ingest, compile, query | `/kb <command> [project]` |
-
-**Commands:**
+**KB commands:**
 - `/kb ingest <project> <type> <path>` — Ingest Slack exports, standups, meetings
 - `/kb standup <project>` — Log today's standup
 - `/kb decision <project> "<title>"` — Record architecture decision
@@ -120,71 +102,35 @@ claude-operations/
 ├── agents/
 │   └── prd-manager.md
 ├── skills/
-│   ├── prd/
-│   │   ├── generate-prd/
-│   │   │   ├── SKILL.md
-│   │   │   └── references/           ← Supporting files
-│   │   ├── generate-korean-prd/
-│   │   │   └── SKILL.md
-│   │   ├── generate-tech-prd/
-│   │   │   ├── SKILL.md
-│   │   │   └── references/           ← Supporting files
-│   │   ├── update-prd/
-│   │   │   └── SKILL.md
-│   │   ├── pdf-to-prd/
-│   │   │   └── SKILL.md
-│   │   └── input-classifier/
-│   │       └── SKILL.md
-│   ├── docs/
-│   │   ├── generate-ppt/
-│   │   │   └── SKILL.md
-│   │   ├── generate-sop/
-│   │   │   └── SKILL.md
-│   │   ├── generate-invoice/
-│   │   │   └── SKILL.md
-│   │   ├── generate-statement/
-│   │   │   └── SKILL.md
-│   │   ├── generate-project-report/
-│   │   │   ├── SKILL.md
-│   │   │   └── references/           ← Supporting files
-│   │   ├── generate-random-project/
-│   │   │   └── SKILL.md
-│   │   └── review-command/
-│   │       └── SKILL.md
+│   ├── client/
+│   │   ├── prd/
+│   │   │   ├── generate-prd/        ← Feature + Technical pipeline (--feature / --tech / --full)
+│   │   │   ├── generate-korean-prd/
+│   │   │   ├── update-prd/
+│   │   │   ├── pdf-to-prd/
+│   │   │   └── input-classifier/
+│   │   ├── meetings/
+│   │   │   ├── kickoff/
+│   │   │   ├── weekly/
+│   │   │   └── closing/
+│   │   ├── billing/
+│   │   │   ├── invoice/
+│   │   │   └── transaction-statement/
+│   │   └── reports/
+│   │       └── korean-government/
+│   │           └── result-report/
+│   ├── internal/
+│   │   ├── sop/
+│   │   ├── kb/
+│   │   ├── tickets/
+│   │   └── training/
 │   ├── qa/
 │   │   ├── _qa-shared/
 │   │   ├── qa-api/  qa-data/  qa-form/  qa-guard/
-│   │   ├── qa-runtime/  qa-scan/  qa-ui/
-│   │   └── (each with SKILL.md)
-│   ├── store/
-│   │   ├── _ship/  _store-shared/
-│   │   ├── assets/  build/  deploy/  native/  prep/  review/  submit/
-│   │   └── (each with SKILL.md)
-│   ├── fullstack/
-│   │   ├── deployment/
-│   │   │   └── SKILL.md
-│   │   └── iteration-manager/
-│   │       └── SKILL.md
-│   ├── git-workflow/
-│   │   └── create-dev-pr/
-│   │       └── SKILL.md
-│   ├── project-lifecycle/
-│   │   ├── project-launch/       ← orchestrator
-│   │   │   └── skill.md
-│   │   ├── project-kickoff/
-│   │   │   └── skill.md
-│   │   ├── project-overview/
-│   │   │   └── skill.md
-│   │   ├── weekly-meeting/
-│   │   │   └── skill.md
-│   │   ├── daily-report/
-│   │   │   └── skill.md
-│   │   └── project-close/
-│   │       └── skill.md
-│   ├── kb/
-│   │   └── skill.md
-│   └── code-cleanup/
-│       └── SKILL.md
+│   │   └── qa-runtime/  qa-scan/  qa-ui/
+│   └── app-release/
+│       ├── _ship/  _store-shared/
+│       └── assets/  build/  deploy/  native/  prep/  review/  submit/
 ├── docs/
 │   ├── project-registry.md
 │   ├── references/
@@ -197,9 +143,6 @@ claude-operations/
 ```bash
 # Generate a PRD from client requirements
 /generate-prd client-requirements.pdf
-
-# Create a presentation
-/generate-ppt "Q1 Product Roadmap"
 
 # Update PRD with client answers or scope changes (auto-detects)
 /update-prd client-feedback.md
@@ -217,7 +160,7 @@ claude-operations/
 ## When to Use
 
 Add this submodule when your project involves:
-- Document generation (PRD, SOP, presentations, invoices)
+- Document generation (PRD, SOP, invoices, statements, reports)
 - Project initialization and setup workflows
 - Deployment pipelines
 - Git workflow automation

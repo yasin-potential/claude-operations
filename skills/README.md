@@ -1,26 +1,24 @@
 # Skills
 
-All reusable Claude Code skills, organized by category.
+All reusable Claude Code skills, organized by purpose.
 
-## Category Map
+## Top-Level Buckets
 
-| Category | Description | Orchestrator | Skills |
-|----------|-------------|--------------|--------|
-| [prd/](prd/) | PRD lifecycle — generate, update, convert | — | 6 |
-| [qa/](qa/) | QA auditing — API, data, UI, security, runtime | `qa-scan` | 7 |
-| [store/](store/) | App store submission pipeline | `store-ship` | 7 |
-| [docs/](docs/) | Document generation — PPT, SOP, invoice, report | — | 7 |
-| [fullstack/](fullstack/) | Fullstack pipeline — deployment, iteration | — | 2 |
+| Bucket | Description | Skill Count |
+|--------|-------------|-------------|
+| [client/](client/) | Everything the client sees — PRD, meetings, billing, reports, proposals | 13 |
+| [internal/](internal/) | Team-only tools — SOP, knowledge base, tickets, training data | 4 |
+| [app-release/](app-release/) | App store release pipeline (`/store-ship` orchestrator) | 7 |
 
-## Standalone Skills
+## Client Sub-Categories
 
-| Skill | Command | Description |
-|-------|---------|-------------|
-| [code-cleanup/](code-cleanup/) | `/code-cleanup` | Dead code analysis and removal |
-| [git-workflow/create-dev-pr/](git-workflow/create-dev-pr/) | `/create-dev-pr` | PR creation to dev branch |
-| [project-close/](project-close/) | `/project-close` | Project closing workflow and deliverables |
-| [project-kickoff/](project-kickoff/) | `/project-kickoff` | Client kick-off presentation |
-| [ticketcreator/](ticketcreator/) | `/ticketcreator` | Structured ticket generation |
+| Path | Description |
+|------|-------------|
+| [client/prd/](client/prd/) | PRD lifecycle — generate, update, classify |
+| [client/meetings/](client/meetings/) | Meeting presentations — kickoff, weekly, closing |
+| [client/billing/](client/billing/) | Invoices and transaction statements |
+| [client/reports/](client/reports/) | Government project result report |
+| [client/proposals/](client/proposals/) | Interactive HTML slide proposals (bilingual KO/EN) |
 
 ## Category README Convention
 
@@ -35,4 +33,4 @@ Every category folder **must** have a `README.md` with these sections:
 | `## Shared Rules` | If exists | What `_shared/` contains and how skills use it |
 | `## Naming Convention` | Yes | Operations repo path ↔ global skills path mapping |
 
-Reference model: [store/README.md](store/README.md)
+Reference model: [app-release/README.md](app-release/README.md)

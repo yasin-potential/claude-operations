@@ -56,7 +56,7 @@ When creating a new category folder:
 
 1. Create a `README.md` following the convention in `skills/README.md` → Category README Convention
 2. Add the category to the `skills/README.md` category map
-3. Use [store/README.md](skills/store/README.md) as the reference model
+3. Use [app-release/README.md](skills/app-release/README.md) as the reference model
 
 ---
 
@@ -64,7 +64,7 @@ When creating a new category folder:
 
 After creating or modifying any skill, sync between `~/.claude/skills/` and this repo.
 
-- **Sync commands**: See [docs/sop/skill-sync-guide.md](docs/sop/skill-sync-guide.md)
+- **Sync commands**: Copy the modified skill directory to the matching global path (`~/.claude/skills/{name}/`). Global uses the leaf folder name.
 - **Direction does not matter** — both locations must always match. After any skill edit, sync whichever side was NOT edited.
 - Do NOT skip this step — the global directory is not a git repo and has no other way to receive updates.
 
@@ -72,41 +72,55 @@ After creating or modifying any skill, sync between `~/.claude/skills/` and this
 
 ```
 skills/
-  prd/                     ← PRD lifecycle skills
-    generate-prd/          ← Generate PRD from client input
-    generate-korean-prd/   ← Korean PRD PDF with branding
-    generate-tech-prd/     ← Technical PRD (Phase B) from Feature PRD
-    update-prd/            ← Update PRD with client feedback
-    pdf-to-prd/            ← Convert PDF to structured markdown PRD
-    input-classifier/      ← Auto-classify input before PRD modification
-  docs/                    ← Document generation skills
-    generate-ppt/          ← HTML presentations with branding
-    generate-sop/          ← SOP creation + Notion integration
-    generate-invoice/      ← Invoice (견적서) HTML/PDF
-    generate-statement/    ← Transaction statement (거래명세서) HTML/PDF
-    generate-project-report/  ← Government project result report
-    generate-random-project/  ← Random project specs for training
-    review-command/        ← Skill file validation & compatibility check
-  qa/                      ← QA auditing skills
-    _qa-shared/            ← Shared patterns & conventions
+  client/                  ← everything the client sees
+    prd/                     ← PRD lifecycle
+      generate-prd/            ← Generate complete PRD (Feature + Technical). Default `--full`; `--feature` / `--tech` / `--interview` flags supported.
+      generate-korean-prd/     ← Korean PRD PDF with branding
+      update-prd/              ← Update PRD with client feedback
+      pdf-to-prd/              ← Convert PDF to structured markdown PRD
+      input-classifier/        ← Auto-classify input before PRD modification
+    meetings/                ← Client meeting presentations
+      kickoff/                 ← Project kickoff presentation (`/kickoff`)
+      weekly/                  ← Weekly meeting agenda + presentation (`/weekly`)
+      closing/                 ← Project closing pipeline + presentation (`/closing`)
+    billing/                 ← Client billing documents
+      invoice/                 ← Invoice (견적서) HTML/PDF
+      transaction-statement/   ← Transaction statement (거래명세서) HTML/PDF
+    reports/                 ← Client-facing reports
+      korean-government/       ← Reports for Korean government submission
+        result-report/           ← Project result report (결과보고서)
+  internal/                ← team-only tools
+    sop/                     ← SOP creation + Notion integration
+    kb/                      ← Knowledge base (ingest, compile, query)
+    tickets/                 ← Structured ticket generation
+    training/                ← Random project specs for training
+  qa/                      ← QA auditing pipeline
+    _qa-shared/              ← Shared patterns & conventions
     qa-api/  qa-data/  qa-form/  qa-guard/  qa-runtime/  qa-scan/  qa-ui/
-  store/                   ← App store submission pipeline
-    _ship/                 ← Pipeline orchestrator
-    _store-shared/         ← Shared rules
+  app-release/             ← App store release pipeline
+    _ship/                   ← Pipeline orchestrator
+    _store-shared/           ← Shared rules
     assets/  build/  deploy/  native/  prep/  review/  submit/
-  fullstack/               ← Fullstack pipeline skills
-    deployment/            ← Deploy to dev/staging/production
-    iteration-manager/     ← Iteration cycle management
-  git-workflow/            ← Git workflow skills
-    create-dev-pr/         ← PR creation to dev branch
-  code-cleanup/            ← Dead code analysis & removal
-  project-close/           ← Project closing workflow
-  project-kickoff/         ← Client kick-off presentation
-  ticketcreator/           ← Structured ticket generation
 ```
 
-Note: Operations uses short folder names (`store/prep/`), global uses prefixed names (`~/.claude/skills/store-prep/`).
+Note: Operations uses short folder names (`app-release/prep/`), global uses prefixed names (`~/.claude/skills/store-prep/`).
 Each category folder has a `README.md` — see [skills/README.md](skills/README.md) for the full map and convention.
+
+---
+
+## Shared Asset Tiers
+
+Three tiers for non-skill-specific assets. Choose by scope of reuse:
+
+| Tier | Location | Scope | When to use |
+|------|----------|-------|-------------|
+| 1 | `../resources/` (repo root) | Cross-module (operation + design + mobile) | Company logo, seal, brand palette — consumed by hooks/scripts or non-synced skills only. [README](../resources/README.md) |
+| 2 | `resources/` (this submodule) | Operation-only, shared across 2+ operation skills | Client logos, tech stack icons, office imagery. [README](resources/README.md) |
+| 3 | `skills/.../{skill}/images/` | Single skill | Portfolio screenshots, skill-unique illustrations |
+
+**Global-sync caveat**: Tiers 1 and 2 sit OUTSIDE `~/.claude/skills/{name}/`. Relative paths like `../../resources/` break after global sync. For skills in the auto-sync list, either (a) keep assets in Tier 3, or (b) have the sync script copy Tier 1/2 assets into the skill's own directory before pushing to `~/.claude/skills/`.
+
+**Promotion path**: start Tier 3. Promote to Tier 2 when a second operation skill needs the asset. Promote to Tier 1 when design or mobile needs it too.
 
 ---
 
@@ -127,4 +141,12 @@ Each category folder has a `README.md` — see [skills/README.md](skills/README.
 
 ## Skill Guide
 
-For a practical guide to all skills with prerequisites, pipelines, and tips, see [docs/skill-guide.md](docs/skill-guide.md).
+For a practical guide to all skills with prerequisites, pipelines, and tips, see [resources/docs/skill-guide.md](resources/docs/skill-guide.md).
+
+---
+
+## Credentials
+
+This is a **cross-module rule** defined at the root — see [../CLAUDE.md → Credentials](../CLAUDE.md) and the full guide at [../resources/docs/credentials-with-1password.md](../resources/docs/credentials-with-1password.md). Reference implementation: [scripts/bolta/](scripts/bolta/).
+
+All new operation scripts that need API keys follow the same pattern.

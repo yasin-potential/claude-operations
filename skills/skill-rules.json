@@ -1,64 +1,12 @@
 {
   "version": "1.0",
-  "description": "Operations skill triggers - PRD generation, deployment, git workflow, and project management",
+  "description": "Operations skill triggers - PRD generation and project management",
   "skills": {
-    "fullstack": {
-      "type": "domain",
-      "enforcement": "suggest",
-      "priority": "high",
-      "file": "fullstack/iteration-manager/SKILL.md",
-      "promptTriggers": {
-        "keywords": [
-          "fullstack",
-          "/fullstack",
-          "fullstack project",
-          "fullstack workflow",
-          "development pipeline",
-          "project setup",
-          "project init",
-          "iteration manager"
-        ],
-        "intentPatterns": [
-          "(deploy|setup|init|initialize).*?project",
-          "(start|create|build).*?fullstack",
-          "(run|execute).*?(pipeline|workflow)",
-          "iteration.*?(manager|planning)"
-        ]
-      },
-      "commands": ["fullstack"]
-    },
-    "git-workflow": {
-      "type": "domain",
-      "enforcement": "suggest",
-      "priority": "medium",
-      "file": "git-workflow/create-dev-pr/SKILL.md",
-      "promptTriggers": {
-        "keywords": ["create pr", "pull request", "dev branch", "push to dev", "pr to dev"],
-        "intentPatterns": [
-          "(create|make|open).*?pr",
-          "(push|submit).*?dev",
-          "pull.*?request.*?dev"
-        ]
-      }
-    },
-    "deployment": {
-      "type": "domain",
-      "enforcement": "suggest",
-      "priority": "medium",
-      "file": "fullstack/deployment/SKILL.md",
-      "promptTriggers": {
-        "keywords": ["deploy", "deployment", "production", "staging", "release"],
-        "intentPatterns": [
-          "(deploy|release).*?(production|staging)",
-          "(push|ship).*?(prod|live)"
-        ]
-      }
-    },
     "input-classifier": {
       "type": "guardrail",
       "enforcement": "block",
       "priority": "critical",
-      "file": "prd/input-classifier/SKILL.md",
+      "file": "client/prd/input-classifier/SKILL.md",
       "fileTriggers": {
         "pathPatterns": [".claude-project/prd/*_PRD_*.md"]
       },
