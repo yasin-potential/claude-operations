@@ -465,60 +465,61 @@ Portfolio slides are inserted **after the "Our Process" slide** and **before the
 ## Team Images
 
 **Image Source**: `.claude/resources/brand/team/`
-**Rule**: Only use a team member's image when their name is specifically mentioned in the proposal. Match the name from the filename.
+**Rule**: Only use a team member's image when their name is specifically mentioned in the proposal. Files are named with the lowercase shortname from `.claude/resources/team-directory.md` — match by the `Name` column there.
 
 ### CEO & CTO
 | Name | Image File |
 |------|-----------|
-| Shin Lukas Dongsub | `ceo-cto/Shin Lukas Dongsub CEO of Potential.png` |
-| Siam Maruf | `ceo-cto/Siam Maruf CTO & Full-stack Team Lead.png` |
+| Shin Lukas Dongsub | `ceo-cto/lukas.png` |
+| Siam Maruf | `ceo-cto/siam.png` |
 
 ### Design Team
 | Name | Image File |
 |------|-----------|
-| Nazirul Hoque | `design-team/Nazirul Hoque Team Leader.png` |
-| Shamima Nasrin | `design-team/Shamima Nasrin Sr. UI UX Designer.png` |
-| Md Forhad Alam | `design-team/Md Forhad Alam Sr. UI UX Designer.png` |
-| MD Ahosan Habib | `design-team/MD Ahosan Habib Jr. UI UX Designer.png` |
-| Abu MD Ehsan | `design-team/Abu MD Ehsan Jr. UI UX Designer.png` |
-| Md Foysal Alam | `design-team/Md Foysal Alam Jr. UI UX Designer.png` |
-| Redwanul Haque | `design-team/Redwanul Haque UI UX Designer.png` |
-| Rukaiya Sharmeen | `design-team/Rukaiya Sharmeen Jr. UI UX Designer.png` |
-| Tasfia | `design-team/Tasfia Jr. UI UX Designer.png` |
-| MD Romjan | `design-team/MD Romjan 3D Motion Designer.png` |
-| Mehedi Hasan | `design-team/Mehedi Hasan 3D Motion Designer.png` |
-| Mosarrof Hossain | `design-team/Mosarrof Hossain 2D Motion Designer.png` |
+| Nazirul Hoque | `design-team/nazirul.png` |
+| Shamima Nasrin | `design-team/shamima.png` |
+| Md Forhad Alam | `design-team/forhad-alam.png` |
+| MD Ahosan Habib | `design-team/habib.png` |
+| Abu MD Ehsan | `design-team/ehsan.png` |
+| Md Foysal Alam | `design-team/foysal.png` |
+| Redwanul Haque | `design-team/redwan.png` |
+| Rukaiya Sharmeen | `design-team/rukaiya.png` |
+| Tasfia | `design-team/tasfia.png` |
+| MD Romjan | `design-team/romjan.png` |
+| Mehedi Hasan | `design-team/mehedi.png` |
+| Mosarrof Hossain | `design-team/mosarrof.png` |
 
 ### Full-Stack Team
 | Name | Image File |
 |------|-----------|
-| Md Hossen Rana | `full-stack-team/Md Hossen Rana Assosiate Team Lead (Full Stack).png` |
-| G M Zulkar Nine | `full-stack-team/G M Zulkar Nine Lead Backend Developer.png` |
-| Atik Bhuiyan | `full-stack-team/Atik Bhuiyan Sr. Frontend developer.png` |
-| Abdullah Al Nomaan | `full-stack-team/Abdullah Al Nomaan Full stack developer.png` |
-| Shamim Hossain | `full-stack-team/Shamim Hossain Full stack developer.png` |
-| Md. Mohibulla | `full-stack-team/Md. Mohibulla Full stack developer.png` |
-| Abdur Rahman | `full-stack-team/Abdur Rahman Senior Flutter Developer.png` |
-| Muksitur Rahman | `full-stack-team/Muksitur Rahman Flutter Developer.png` |
-| Dolan Bairagi | `full-stack-team/Dolan Bairagi Backend Developer.png` |
-| Hasan Al Mahmud | `full-stack-team/Hasan Al Mahmud Backend Developer.png` |
-| Meherab Irfan | `full-stack-team/Meherab Irfan Backend Developer.png` |
-| Talha Mahmud | `full-stack-team/Talha Mahmud Backend Developer.png` |
-| Israt Jahan Rothy | `full-stack-team/Israt Jahan Rothy Jr. Frontend Developer.png` |
-| Md. Tonmoy Khan | `full-stack-team/Md. Tonmoy Khan Jr. Frontend Developer.png` |
-| Md. Zihad Hossion | `full-stack-team/Md. Zihad Hossion Jr. Frontend Developer.png` |
-| Saiful Islam | `full-stack-team/Saiful Islam Jr. Frontend Developer.png` |
+| Md Hossen Rana | `full-stack-team/rana.png` |
+| G M Zulkar Nine | `full-stack-team/zulkar.png` |
+| Atik Bhuiyan | `full-stack-team/atik.png` |
+| Abdullah Al Nomaan | `full-stack-team/nomaan.png` |
+| Shamim Hossain | `full-stack-team/shamim.png` |
+| Md. Mohibulla | `full-stack-team/mohibulla.png` |
+| Forhad | `full-stack-team/forhad.png` |
+| Abdur Rahman | `full-stack-team/abdur.png` |
+| Muksitur Rahman | `full-stack-team/muksitur.png` |
+| Dolan Bairagi | `full-stack-team/dolan.png` |
+| Hasan Al Mahmud | `full-stack-team/hasan.png` |
+| Meherab Irfan | `full-stack-team/meherab.png` |
+| Talha Mahmud | `full-stack-team/talha.png` |
+| Israt Jahan Rothy | `full-stack-team/israt.png` |
+| Md. Tonmoy Khan | `full-stack-team/tonmoy.png` |
+| Md. Zihad Hossion | `full-stack-team/zihad.png` |
+| Saiful Islam | `full-stack-team/saiful.png` |
 
 ### Operations Team
 | Name | Image File |
 |------|-----------|
-| Jayden | `operation-team/jayden Lead Project manager.png` |
-| Riaz Uddin | `operation-team/Riaz Uddin Project & HR Manager.png` |
-| Eddy | `operation-team/Eddy Project Manager.png` |
-| Istimam Hossen Akib | `operation-team/Istimam Hossen Akib Project Manager.png` |
-| Symon Barua | `operation-team/Symon Barua Project Manager.png` |
-| Yasin Billah | `operation-team/Yasin Billah Project Manager.png` |
-| Rahid Uddin Ahmed | `operation-team/Rahid Uddin Ahmed CEO Stuff.png` |
+| Jayden | `operation-team/jayden.png` |
+| Riaz Uddin | `operation-team/riaz.png` |
+| Eddy | `operation-team/eddy.png` |
+| Istimam Hossen Akib | `operation-team/akib.png` |
+| Symon Barua | `operation-team/symon.png` |
+| Yasin Billah | `operation-team/yasin.png` |
+| Rahid Uddin Ahmed | `operation-team/rahid.png` |
 
 ---
 
