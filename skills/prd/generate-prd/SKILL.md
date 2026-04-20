@@ -841,6 +841,28 @@ This ensures Phase 1 PM decisions flow into the draft without re-asking.
 - Example: `Login method: Email + Password, Social Login (Google, Apple) [💡 Recommended: B2C app standard]`
 - Remaining `[💡 Recommended]` items confirmed by PM in Phase 4 (Deliver)
 
+### Additional Questions — Mandatory Recommendation Rule
+
+**Every question in Section 8 (Additional Questions) MUST include a Recommendation column** with the dev-side proposed default value and a one-line rationale. This is non-negotiable.
+
+**Why**: Open-ended questions burden the client and slow decisions. A question with a proposed default lets the client approve-as-is (fast path) or override with context. The PM/dev side has domain knowledge to propose sensible defaults for most items — not using it is a missed opportunity.
+
+**Classification** — when writing each question, classify the item first:
+
+| Type | Definition | Recommendation behavior |
+|:--|:--|:--|
+| **Structural** | Schema, architecture, UX patterns, standard policy values (password rules, max list sizes, pagination limits, permission defaults, industry-standard UX). | **Must propose** a concrete default with rationale (industry standard / benchmark app / technical constraint). |
+| **Policy-with-default** | Business policy where industry defaults exist (e.g., free shipping threshold — propose structure + example value). | **Must propose** structure confirmation + one example value as the default. |
+| **Client-only** | Pure client content or decisions with no reasonable industry default (specific product names, internal business rules, pricing values, partner selections requiring client contracts). | Write `— (client-only decision)` in Recommendation column with a one-line explanation of why no default was proposed. |
+
+**Rule of thumb**: If you can Google "best practice for X in {industry}" and find a common answer, it's Structural or Policy-with-default — propose it. If the answer is unique to this client's business, it's Client-only.
+
+**Anti-pattern to avoid**: Writing "TBD — 클라이언트 확인" for items like password rules, max address count, category depth, admin permission defaults. These all have industry-standard defaults — propose them and let the client override if needed.
+
+**Output format** (table columns):
+- Required table: `# | Question | Recommendation | Rationale | Blocks`
+- Recommended table: `# | Question | Recommendation | Rationale | Affects`
+
 ### Bug Pattern Integration
 
 If `.claude-project/knowledge/bug-patterns.md` or `references/bug-patterns-global.md` exists:
@@ -1503,6 +1525,17 @@ Each question has: `id`, `category`, `type`, `trigger`, `preset_options`, and op
   trigger: always
   hint: "예: 처방, 세트, 렙, 코칭, 매칭 등 — 일반인이 모를 수 있는 용어"
 
+- id: T3
+  category: Technical
+  question: "앱 서비스 언어와 개발 QA 언어는 어떻게 할까요? (App languages & developer QA language)"
+  type: tiered
+  trigger: always
+  presets:
+    A: "(단일) 한국어만 (앱 전체 한국어)"
+    B: "(권장) 한국어 서비스 + 영어 QA (개발/오류 메시지는 영어로 관리)"
+    C: "(다국어) 한국어 + 영어 + 기타 언어 완전 지원"
+  hint: "i18n 아키텍처에 영향 — 초기 스캐폴딩, API 에러 메시지 형태, 프론트엔드 문자열 관리 방식 결정"
+
 # === Other ===
 
 - id: O1
@@ -1514,16 +1547,16 @@ Each question has: `id`, `category`, `type`, `trigger`, `preset_options`, and op
 ```
 
 **Interview question counts:**
-- Always-fire (interview): 24 (B1, B2, U1, U2, D1-D4, F1, F1a, F2, F2a-F2c, F3-F7, DA1, DA2, T1, T2, O1)
+- Always-fire (interview): 25 (B1, B2, U1, U2, D1-D4, F1, F1a, F2, F2a-F2c, F3-F7, DA1, DA2, T1, T2, T3, O1)
 - Conditional (interview): 8 (B1a, U3, F3a, F3b, F4a, F5a, F5b, DA2a)
-- Interview max: 32 questions
+- Interview max: 33 questions
 
 **With pre-intake:**
 - Always-fire (pre-intake): 8 (P1-P3, P5-P9)
 - Conditional (pre-intake): 3 (P4, P6a, P6b)
-- Full session max: 43 questions
+- Full session max: 44 questions
 
-**Typical session: 28-36 questions (depending on pre-intake status and client answers)**
+**Typical session: 29-37 questions (depending on pre-intake status and client answers)**
 
 ### Parser Input
 
@@ -1548,7 +1581,7 @@ Minimum required: plain text with question numbers matching the interview templa
 | Item | Decision Basis | Detected By |
 |------|---------------|-------------|
 | Offline usage needed | App type + use context | Bundle: Offline |
-| Multi-language (i18n) | Target market + user base | PM judgment |
+| Multi-language (i18n) | Target market + user base | Interview Q: T3 (always asked) |
 | Analytics event tracking | Business goals + success metrics | Bundle: Analytics |
 | Data retention / deletion policy | Industry + legal requirements | PM judgment |
 | Data change history (audit log) | Industry regulation (medical, finance) | Bundle: Audit |

@@ -225,8 +225,9 @@ Same as Phase A: support fixes → qa re-validates → max 3 rounds → manual i
 
 ### B4.2 Save Final Files
 
-- Complete PRD: `[AppName]_PRD_[YYMMDD].md` in `.claude-project/prd/{ProjectName}/`
-- Feature PRD preserved as-is (for audit/reference)
+- Complete PRD: `[AppName]_PRD.md` in `.claude-project/prd/{ProjectName}/` (stable filename — overwrites on re-run. Version/date is tracked in the PRD's own header + Feature Change Log, not in the filename. This prevents dated-file proliferation across iterations.)
+- Feature PRD preserved as-is (for audit/reference — retains its date suffix per /generate-prd and /update-prd conventions)
+- Before writing the complete PRD, delete any legacy `[AppName]_PRD_*.md` files (with date suffix) in `.claude-project/prd/{ProjectName}/` to avoid confusion with prior output from older skill versions.
 
 ### B4.3 Result Report
 
@@ -234,7 +235,7 @@ Same as Phase A: support fixes → qa re-validates → max 3 rounds → manual i
 ## Technical PRD Generation Complete
 
 ### Output
-- Complete PRD: `.claude-project/prd/{ProjectName}/[AppName]_PRD_[YYMMDD].md`
+- Complete PRD: `.claude-project/prd/{ProjectName}/[AppName]_PRD.md` (stable, overwrites on re-run)
 - Feature PRD: preserved at original location
 
 ### Summary
@@ -260,8 +261,8 @@ Same as Phase A: support fixes → qa re-validates → max 3 rounds → manual i
 │   ├── integration-inventory.md
 │   └── project-config.md
 ├── drafts/
-├── {AppName}_FeaturePRD_{YYMMDD}.md   ← Phase A output (preserved)
-└── {AppName}_PRD_{YYMMDD}.md          ← Complete merged PRD
+├── {AppName}_FeaturePRD_{YYMMDD}.md   ← Phase A output (preserved, dated per /generate-prd convention)
+└── {AppName}_PRD.md                    ← Complete merged PRD (stable filename, overwrites on re-run)
 
 ### Next Steps
 1. Review the complete PRD with the development team
