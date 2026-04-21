@@ -200,21 +200,19 @@ Create directory if it doesn't exist.
             color: #333;
             background: #fff;
             width: 210mm;
+            min-height: 297mm;
             margin: 0 auto;
+            position: relative;
         }
 
         .page {
             width: 100%;
-            height: 297mm;
-            padding: 36px 0 0 0;
-            box-sizing: border-box;
+            min-height: 297mm;
+            padding: 50px 60px 0 60px;
+            position: relative;
             display: flex;
             flex-direction: column;
         }
-
-        /* NOTE: .page uses padding: 0 on sides so .bottom-bar can be full-width.
-           Individual content sections (.header, .info-section, etc.) must add
-           padding-left/right: 60px on their own CSS rules. */
 
         /* Header */
         .header {
@@ -421,16 +419,11 @@ Create directory if it doesn't exist.
 
         /* Signature */
         .signature-section {
-            padding: 0 60px 16px 60px;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-        }
-
-        .signature-center {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            margin-top: auto;
+            padding-bottom: 30px;
         }
 
         .signature-left {
@@ -438,11 +431,10 @@ Create directory if it doesn't exist.
         }
 
         .signature-seal {
-            width: 70px;
-            height: 70px;
-            object-fit: contain;
-            display: block;
-            opacity: 0.85;
+            width: 80px;
+            height: 80px;
+            margin-bottom: 10px;
+            opacity: 0.7;
         }
 
         .signature-line {
@@ -472,18 +464,14 @@ Create directory if it doesn't exist.
             color: #666;
         }
 
-        /* Spacer - pushes signature and bottom bar to bottom of page */
-        .spacer {
-            flex: 1;
-        }
-
-        /* Bottom Bar - must be last flex child in .page, full width */
+        /* Bottom Bar */
         .bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
             height: 30px;
             display: flex;
-            margin-top: auto;
-            width: 100%;
-            flex-shrink: 0;
         }
 
         .bottom-bar-left {
@@ -499,9 +487,10 @@ Create directory if it doesn't exist.
         @media print {
             body {
                 width: 210mm;
+                min-height: 297mm;
             }
             .page {
-                height: 297mm;
+                min-height: 297mm;
             }
         }
     </style>
@@ -562,16 +551,11 @@ Create directory if it doesn't exist.
             </div>
         </div>
 
-        <!-- Spacer pushes signature + bottom bar to bottom -->
-        <div class="spacer"></div>
-
         <!-- Signature -->
         <div class="signature-section">
             <div class="signature-left">
+                <img class="signature-seal" src="data:image/svg+xml;base64,[SEAL_BASE64]" alt="seal">
                 <div class="signature-line">Signature</div>
-            </div>
-            <div class="signature-center">
-                <img class="signature-seal" src="data:image/png;base64,[SEAL_BASE64]" alt="seal">
             </div>
             <div class="signature-right">
                 <div class="signature-date">[DATE_FORMATTED]</div>
@@ -649,28 +633,14 @@ When `--no-vat` is specified: empty string (VAT row omitted).
 
 ### 3.8 Logo SVG
 
-**Path**: `.claude/resources/brand/logo/logo.svg` (relative to the workspace root, NOT `templates/`)
-
-Read the logo SVG file and insert its contents directly at the `<!-- LOGO_SVG -->` position.
-
-> **CRITICAL**: Set `width` and `height` on the `<svg>` element to `180` and `80` respectively so the logo renders at the correct size. The original SVG has `width="2000"` which will render oversized without this fix.
-
-```python
-with open('.claude/resources/brand/logo/logo.svg') as f:
-    logo_svg = f.read()
-# Fix SVG dimensions for display
-logo_svg = logo_svg.replace('<svg width="2000" height="883"', '<svg width="180" height="80"')
-```
-
-- If the logo file is not found, render text fallback: `<div class="logo-text">Potential Inc</div>`
+Read `templates/logo.svg` and insert its contents at the `<!-- LOGO_SVG -->` position.
+- If the logo file is not found, skip logo and render without branding.
 
 ### 3.9 Seal Image
 
-**Path**: `.claude/resources/brand/logo/seal.png` (relative to the workspace root, NOT `templates/`)
+**Path**: `templates/seal.png`
 
-Read `seal.png`, Base64-encode it, and use as `data:image/png;base64,{encoded}` for the seal `<img>` src.
-
-> **CRITICAL**: Always set explicit size on the seal image: `style="width:70px;height:70px;object-fit:contain;display:block"`. The PNG is 284×272px natively and will be oversized without this fix.
+Read `templates/seal.png`, Base64-encode it, and use as `data:image/png;base64,{encoded}` for the seal `<img>` src.
 
 If the seal file is not found, omit the seal image from the invoice.
 
