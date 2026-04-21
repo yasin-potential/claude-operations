@@ -427,7 +427,8 @@ Create directory if it doesn't exist.
             justify-content: space-between;
             align-items: flex-end;
             margin-top: auto;
-            padding-bottom: 22px;
+            /* MUST exceed .bottom-bar height (30px) so Signature/Date labels clear the bar */
+            padding-bottom: 50px;
         }
 
         .signature-left {
