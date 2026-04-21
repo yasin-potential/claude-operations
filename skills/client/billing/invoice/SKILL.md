@@ -135,6 +135,8 @@ Ask the user to provide items and amounts in free-form text. Parse the response 
 
 ## Step 3: Generate HTML
 
+> **SINGLE-PAGE CONSTRAINT**: The invoice MUST render on a single A4 page. The template is pre-tuned for up to ~10 line items. If the rendered PDF exceeds 1 page, shrink proportionally (padding, font sizes, margins) until it fits. See Step 4.4 for the verification loop.
+
 ### 3.1 Generate Invoice Number
 
 Format: `YYYYMMDD-1` (based on today's date)
@@ -200,18 +202,20 @@ Create directory if it doesn't exist.
             color: #333;
             background: #fff;
             width: 210mm;
-            min-height: 297mm;
+            height: 297mm;
             margin: 0 auto;
             position: relative;
         }
 
+        /* Single-page A4: fixed height + overflow:hidden prevents page break */
         .page {
             width: 100%;
-            min-height: 297mm;
-            padding: 50px 60px 0 60px;
+            height: 297mm;
+            padding: 28px 50px 0 50px;
             position: relative;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         /* Header */
@@ -219,11 +223,11 @@ Create directory if it doesn't exist.
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 50px;
+            margin-bottom: 22px;
         }
 
         .header-logo svg {
-            width: 220px;
+            width: 170px;
             height: auto;
         }
 
@@ -232,16 +236,16 @@ Create directory if it doesn't exist.
         }
 
         .header-right .invoice-title {
-            font-size: 36px;
+            font-size: 30px;
             font-weight: 800;
             color: #050042;
             letter-spacing: 2px;
         }
 
         .header-right .invoice-no {
-            font-size: 14px;
+            font-size: 13px;
             color: #666;
-            margin-top: 5px;
+            margin-top: 4px;
         }
 
         .header-right .invoice-no span {
@@ -253,7 +257,7 @@ Create directory if it doesn't exist.
         .info-section {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 50px;
+            margin-bottom: 22px;
         }
 
         .info-left {
@@ -265,43 +269,43 @@ Create directory if it doesn't exist.
         }
 
         .info-label {
-            font-size: 12px;
+            font-size: 11px;
             color: #999;
             font-weight: 600;
             letter-spacing: 1px;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
 
         .info-client-name {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             color: #050042;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
 
         .info-contact {
-            font-size: 16px;
+            font-size: 14px;
             color: #333;
             font-weight: 500;
         }
 
         .info-company-name {
-            font-size: 20px;
+            font-size: 17px;
             font-weight: 700;
             color: #050042;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
 
         .info-company-detail {
-            font-size: 13px;
+            font-size: 12px;
             color: #666;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         /* Table */
         .invoice-table {
             width: 100%;
-            margin-bottom: 40px;
+            margin-bottom: 16px;
         }
 
         .table-header {
@@ -310,15 +314,15 @@ Create directory if it doesn't exist.
             align-items: center;
             background: #624DFF;
             color: white;
-            padding: 14px 24px;
+            padding: 11px 22px;
             border-radius: 8px 8px 0 0;
             font-weight: 700;
-            font-size: 15px;
+            font-size: 14px;
             letter-spacing: 1px;
         }
 
         .table-body {
-            padding: 24px;
+            padding: 16px 22px;
             border: none;
         }
 
@@ -326,79 +330,79 @@ Create directory if it doesn't exist.
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 8px;
+            margin-bottom: 7px;
         }
 
         .item-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: #333;
         }
 
         .item-price {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: #333;
             white-space: nowrap;
         }
 
         .item-details {
-            margin-left: 24px;
-            margin-top: 4px;
-            margin-bottom: 16px;
+            margin-left: 20px;
+            margin-top: 3px;
+            margin-bottom: 10px;
         }
 
         .item-detail {
-            font-size: 14px;
+            font-size: 13px;
             color: #555;
-            line-height: 1.8;
+            line-height: 1.6;
             display: flex;
             align-items: center;
         }
 
         .item-detail::before {
             content: "-";
-            margin-right: 8px;
+            margin-right: 6px;
             color: #999;
         }
 
         .sub-detail {
-            margin-left: 24px;
+            margin-left: 20px;
         }
 
         /* Summary */
         .summary-divider {
             border: none;
             border-top: 1px solid #ddd;
-            margin: 20px 0;
+            margin: 10px 0;
         }
 
         .summary-section {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            padding: 0 24px;
-            margin-bottom: 40px;
+            padding: 0 22px;
+            margin-bottom: 14px;
         }
 
         .summary-row {
             display: flex;
             justify-content: flex-end;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
             width: 300px;
         }
 
         .summary-label {
-            font-size: 14px;
+            font-size: 13px;
             color: #666;
             text-align: right;
-            margin-right: 30px;
+            margin-right: 28px;
             flex: 1;
         }
 
         .summary-value {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             color: #333;
             text-align: right;
@@ -406,13 +410,13 @@ Create directory if it doesn't exist.
         }
 
         .summary-total .summary-label {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             color: #050042;
         }
 
         .summary-total .summary-value {
-            font-size: 20px;
+            font-size: 19px;
             font-weight: 800;
             color: #050042;
         }
@@ -423,7 +427,7 @@ Create directory if it doesn't exist.
             justify-content: space-between;
             align-items: flex-end;
             margin-top: auto;
-            padding-bottom: 30px;
+            padding-bottom: 22px;
         }
 
         .signature-left {
@@ -431,17 +435,17 @@ Create directory if it doesn't exist.
         }
 
         .signature-seal {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 10px;
+            width: 64px;
+            height: 64px;
+            margin-bottom: 6px;
             opacity: 0.7;
         }
 
         .signature-line {
-            width: 200px;
+            width: 180px;
             border-top: 1px solid #333;
-            padding-top: 8px;
-            font-size: 13px;
+            padding-top: 6px;
+            font-size: 12px;
             color: #666;
         }
 
@@ -450,17 +454,17 @@ Create directory if it doesn't exist.
         }
 
         .signature-date {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 500;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
 
         .date-line {
-            width: 200px;
+            width: 180px;
             border-top: 1px solid #333;
-            padding-top: 8px;
-            font-size: 13px;
+            padding-top: 6px;
+            font-size: 12px;
             color: #666;
         }
 
@@ -487,10 +491,11 @@ Create directory if it doesn't exist.
         @media print {
             body {
                 width: 210mm;
-                min-height: 297mm;
+                height: 297mm;
             }
             .page {
-                min-height: 297mm;
+                height: 297mm;
+                overflow: hidden;
             }
         }
     </style>
@@ -673,6 +678,25 @@ Please verify that Google Chrome is installed.
 The HTML file has been saved at: [HTML_PATH]
 ```
 
+### 4.4 Verify Single-Page Output (REQUIRED)
+
+After PDF generation, verify the output is exactly **1 page**. Run:
+
+```bash
+python3 -c "from pypdf import PdfReader; print(len(PdfReader('[PDF_PATH]').pages))"
+```
+
+If the output is **> 1**:
+1. Reduce layout density in this order until it fits:
+   - `.page` padding-top: 28px → 20px → 16px
+   - `.table-item` margin-bottom: 7px → 5px → 4px
+   - `.info-section` / `.header` margin-bottom: 22px → 16px → 12px
+   - Font sizes: scale all by 0.9x (e.g., 14 → 13, 15 → 14, 20 → 18)
+2. Regenerate HTML + PDF, verify again.
+3. Do NOT report success until page count == 1.
+
+`.page { height: 297mm; overflow: hidden; }` already clips overflow, but clipped content is a bug — the content must genuinely fit, not be hidden.
+
 ---
 
 ## Step 5: Save to Invoice Records
@@ -762,6 +786,7 @@ You can preview the invoice by opening the HTML file in a browser.
 | Amount missing | Ask via AskUserQuestion |
 | Logo file not found | Use built-in SVG fallback |
 | PDF conversion fails | Report error, provide HTML file path |
+| PDF exceeds 1 page | Shrink per Step 4.4 and regenerate until page count == 1 |
 
 ---
 
