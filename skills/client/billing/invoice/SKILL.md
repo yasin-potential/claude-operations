@@ -137,9 +137,9 @@ Ask the user to provide items and amounts in free-form text. Parse the response 
 
 ### 3.1 Generate Invoice Number
 
-Format: `YYYYMMDD-1` (based on today's date)
+Format: `YYYYMMDD-15` (based on today's date — sequence starts at 15, not 1)
 
-Example: `20260303-1`
+Example: `20260303-15`
 
 ### 3.2 Calculate Amounts
 
@@ -179,7 +179,7 @@ Create directory if it doesn't exist.
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>[Invoice] [CLIENT_NAME]</title>
+    <title>Invoice [CLIENT_NAME]</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -503,7 +503,7 @@ Create directory if it doesn't exist.
                 <!-- LOGO_SVG -->
             </div>
             <div class="header-right">
-                <div class="invoice-title">견적서</div>
+                <div class="invoice-title">INVOICE</div>
                 <div class="invoice-no">Invoice No : <span>[INVOICE_NO]</span></div>
             </div>
         </div>
@@ -519,9 +519,9 @@ Create directory if it doesn't exist.
                 <div class="info-label">COMPANY:</div>
                 <div class="info-company-name">Potential Inc</div>
                 <div class="info-company-detail">
-                    131,Continental Dr<br>
-                    Suite 305 Newark, Delaware<br>
-                    United States
+                    서울시 신도림 핀포인트 타워 1715<br>
+                    contact@potentialai.com<br>
+                    070-4578-8349
                 </div>
             </div>
         </div>
@@ -719,9 +719,9 @@ When generating the invoice number:
 1. Read `.claude-project/billing/invoice-records.json`
 2. Find all records with today's date prefix (e.g., `20260303-`)
 3. Set the sequence number to max existing + 1
-4. If no records exist for today, start at `1`
+4. If no records exist for today, start at `15` (sequence always begins at 15, not 1)
 
-Example: If `20260303-1` and `20260303-2` already exist, the next one is `20260303-3`.
+Example: If `20260303-15` and `20260303-16` already exist, the next one is `20260303-17`.
 
 ### 5.4 How to Save
 
