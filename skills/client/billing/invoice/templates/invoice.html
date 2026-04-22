@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[Invoice] [CLIENT_NAME]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            color: #333;
+            background: #fff;
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Single-page A4: fixed height + overflow:hidden prevents page break */
+        .page {
+            width: 100%;
+            height: 297mm;
+            padding: 28px 50px 0 50px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 22px;
+        }
+
+        .header-logo svg {
+            width: 170px;
+            height: auto;
+        }
+
+        .header-right {
+            text-align: right;
+        }
+
+        .header-right .invoice-title {
+            font-size: 30px;
+            font-weight: 800;
+            color: #050042;
+            letter-spacing: 2px;
+        }
+
+        .header-right .invoice-no {
+            font-size: 13px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .header-right .invoice-no span {
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* Info Section */
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 22px;
+        }
+
+        .info-left {
+            text-align: left;
+        }
+
+        .info-right {
+            text-align: right;
+        }
+
+        /* WCAG AA: #555 on #fff = 7.5:1 (was #999 = 2.85:1, failed) */
+        .info-label {
+            font-size: 11px;
+            color: #555;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .info-client-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #050042;
+            margin-bottom: 3px;
+        }
+
+        .info-contact {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .info-company-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: #050042;
+            margin-bottom: 5px;
+        }
+
+        .info-company-detail {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* Table */
+        .invoice-table {
+            width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #624DFF;
+            color: white;
+            padding: 11px 22px;
+            border-radius: 8px 8px 0 0;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .table-body {
+            padding: 16px 22px;
+            border: none;
+        }
+
+        .table-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 7px;
+        }
+
+        .item-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .item-price {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        .item-details {
+            margin-left: 20px;
+            margin-top: 3px;
+            margin-bottom: 10px;
+        }
+
+        .item-detail {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+            display: flex;
+            align-items: center;
+        }
+
+        /* WCAG AA: #666 on #fff = 5.7:1 (was #999 = 2.85:1, failed) */
+        .item-detail::before {
+            content: "-";
+            margin-right: 6px;
+            color: #666;
+        }
+
+        .sub-detail {
+            margin-left: 20px;
+        }
+
+        /* Summary */
+        .summary-divider {
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 10px 0;
+        }
+
+        .summary-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            padding: 0 22px;
+            margin-bottom: 14px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 6px;
+            width: 300px;
+        }
+
+        .summary-label {
+            font-size: 13px;
+            color: #666;
+            text-align: right;
+            margin-right: 28px;
+            flex: 1;
+        }
+
+        .summary-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            text-align: right;
+            min-width: 100px;
+        }
+
+        .summary-total .summary-label {
+            font-size: 15px;
+            font-weight: 700;
+            color: #050042;
+        }
+
+        .summary-total .summary-value {
+            font-size: 19px;
+            font-weight: 800;
+            color: #050042;
+        }
+
+        /* Signature */
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: auto;
+            /* MUST exceed .bottom-bar height (30px) so Signature/Date labels clear the bar */
+            padding-bottom: 50px;
+        }
+
+        .signature-left {
+            text-align: center;
+        }
+
+        .signature-seal {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 6px;
+            opacity: 0.7;
+        }
+
+        .signature-line {
+            width: 180px;
+            border-top: 1px solid #333;
+            padding-top: 6px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .signature-right {
+            text-align: center;
+        }
+
+        .signature-date {
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .date-line {
+            width: 180px;
+            border-top: 1px solid #333;
+            padding-top: 6px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Bottom Bar */
+        .bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            display: flex;
+        }
+
+        .bottom-bar-left {
+            flex: 1;
+            background: #624DFF;
+        }
+
+        .bottom-bar-right {
+            flex: 1;
+            background: #4834CC;
+        }
+
+        @media print {
+            body {
+                width: 210mm;
+                height: 297mm;
+            }
+            .page {
+                height: 297mm;
+                overflow: hidden;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-logo">
+                <!-- LOGO_SVG -->
+            </div>
+            <div class="header-right">
+                <div class="invoice-title">Invoice</div>
+                <div class="invoice-no">Invoice No : <span>[INVOICE_NO]</span></div>
+            </div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="info-section">
+            <div class="info-left">
+                <div class="info-label">INVOICE TO</div>
+                <div class="info-client-name">[CLIENT_NAME]</div>
+                <div class="info-contact">[CONTACT_NAME]</div>
+            </div>
+            <div class="info-right">
+                <div class="info-label">COMPANY:</div>
+                <div class="info-company-name">Potential Inc</div>
+                <div class="info-company-detail">
+                    서울시 신도림 핀포인트 타워 1715<br>
+                    070-4578-8349<br>
+                    contact@potentialai.com
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice Table -->
+        <div class="invoice-table">
+            <div class="table-header">
+                <span>TITLE</span>
+                <span>PRICE</span>
+            </div>
+            <div class="table-body">
+                [INVOICE_ITEMS]
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <hr class="summary-divider">
+        <div class="summary-section">
+            <div class="summary-row">
+                <span class="summary-label">SUB TOTAL</span>
+                <span class="summary-value">[SUB_TOTAL]원</span>
+            </div>
+            [VAT_ROW]
+            <div class="summary-row summary-total">
+                <span class="summary-label">TOTAL</span>
+                <span class="summary-value">[TOTAL]원</span>
+            </div>
+        </div>
+
+        <!-- Signature -->
+        <div class="signature-section">
+            <div class="signature-left">
+                <img class="signature-seal" src="data:image/png;base64,[SEAL_BASE64]" alt="seal">
+                <div class="signature-line">Signature</div>
+            </div>
+            <div class="signature-right">
+                <div class="signature-date">[DATE_FORMATTED]</div>
+                <div class="date-line">Date</div>
+            </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="bottom-bar">
+            <div class="bottom-bar-left"></div>
+            <div class="bottom-bar-right"></div>
+        </div>
+    </div>
+</body>
+</html>

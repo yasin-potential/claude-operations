@@ -1,14 +1,16 @@
 ---
 name: generate-invoice
-description: "Generate an Invoice (견적서) as HTML/PDF with Potential Inc branding. Invoke when user needs to create a client invoice."
+description: "Generate a client Invoice as single-page A4 HTML/PDF with Potential Inc branding. Supports monthly-subscription and project-based invoice types, domestic (VAT) and international (--no-vat). Invoke when the user asks to create/issue an invoice or 견적서."
 argument-hint: "[--client 'company'] [--contact 'name'] [--no-vat]"
 ---
 
 # Generate Invoice Command
 
-Generate a branded Invoice (견적서) document in HTML and PDF format matching the Potential Inc invoice template.
+Generate a branded single-page client Invoice (title: `Invoice`, Korean-context 견적서) in HTML and PDF matching the Potential Inc template.
 
-All arguments are optional. If any required information is missing, collect it interactively via AskUserQuestion.
+All arguments are optional. Any missing required field is collected interactively via AskUserQuestion.
+
+> **Single-Page Constraint** — the rendered PDF MUST be exactly one A4 page. The template is tuned for up to ~10 line items. If the verification step reports >1 page, apply the shrink ladder in [Step 4.4](#44-verify-single-page-output-required) and regenerate until it fits. Clipped content is a bug, not a fix.
 
 ---
 
@@ -18,585 +20,163 @@ All arguments are optional. If any required information is missing, collect it i
 # Fully specified
 /generate-invoice --client "오누이" --contact "노대원 CRO님"
 
-# Minimal (will ask for everything)
+# Minimal (fully interactive)
 /generate-invoice
 
-# No VAT for international clients
+# International client, no VAT
 /generate-invoice --client "Global Corp" --contact "John Smith CEO" --no-vat
 ```
 
 ---
 
-## Workflow Overview
+## Workflow
 
+1. Parse `$ARGUMENTS` and collect missing required fields
+2. Collect invoice type + line items
+3. Generate HTML from `templates/invoice.html` with variable substitution
+4. Convert HTML → PDF via Chrome headless, verify single-page
+5. Append record to `invoice-records.json`
+6. Report result
+
+---
+
+## Design System
+
+Source: `ui-ux-pro-max --design-system` for "B2B invoice / corporate print document".
+Selected pattern: **Swiss Modernism 2.0** — strict grid, mathematical spacing, Inter typography, single accent, high contrast. Fits corporate trust-and-authority tone while keeping print complexity low.
+
+To recommend a new variant (e.g., a distinct accent for international invoices), re-run:
+
+```bash
+python3 .claude/third-party/skills/ui-ux-pro-max/scripts/search.py \
+  "b2b invoice corporate print" --design-system
 ```
-┌──────────────────────┐
-│  Step 1               │
-│  Parse & Collect Info  │
-└──────────┬───────────┘
-           │
-┌──────────▼───────────┐
-│  Step 2               │
-│  Collect Line Items   │
-└──────────┬───────────┘
-           │
-┌──────────▼───────────┐
-│  Step 3               │
-│  Generate HTML        │
-└──────────┬───────────┘
-           │
-┌──────────▼───────────┐
-│  Step 4               │
-│  Convert to PDF       │
-└──────────┬───────────┘
-           │
-┌──────────▼───────────┐
-│  Step 5               │
-│  Save to Records      │
-└──────────┬───────────┘
-           │
-┌──────────▼───────────┐
-│  Step 6               │
-│  Report Result        │
-└──────────────────────┘
-```
+
+### Brand Tokens
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--accent-primary` | `#624DFF` | Table header band, bottom-bar left |
+| `--accent-dark` | `#4834CC` | Bottom-bar right |
+| `--heading` | `#050042` | Invoice title, client name, TOTAL |
+| `--text-body` | `#333333` | Default body text, item titles |
+| `--text-muted` | `#666666` | Item detail dash, summary labels, signature labels |
+| `--text-label` | `#555555` | Small-caps labels (INVOICE TO, COMPANY) |
+| `--divider` | `#dddddd` | Summary divider only |
+| `--bg` | `#ffffff` | Page background |
+| `--font-primary` | `Inter` | Latin + numerics |
+| `--font-fallback-ko` | `Apple SD Gothic Neo`, `Malgun Gothic` | Korean characters |
+| `--base-unit` | `8px` | Spacing rhythm (padding / margin multiples) |
+| `--line-height-body` | `1.5`–`1.6` | Body and detail lines |
+
+### Contrast Ledger (WCAG AA target ≥4.5:1)
+
+| Pair | Ratio | Verdict |
+|------|-------|---------|
+| `#050042` on `#ffffff` | 18.1:1 | ✓ AAA |
+| `#333333` on `#ffffff` | 12.6:1 | ✓ AAA |
+| `#555555` on `#ffffff` | 7.5:1 | ✓ AAA |
+| `#666666` on `#ffffff` | 5.7:1 | ✓ AA |
+| `#ffffff` on `#624DFF` | 5.4:1 | ✓ AA (table header) |
+| `#050042` on `#ffffff` (large) | 18.1:1 | ✓ AAA |
+
+Prior versions used `#999` for labels and decorative dashes (2.85:1) — fails AA. Do not reintroduce.
 
 ---
 
 ## Step 1: Parse Arguments & Collect Missing Info
 
-### 1.1 Parse Arguments
-
 Extract from `$ARGUMENTS`:
-- **--client**: Client company name
-- **--contact**: Contact person name + title
-- **--no-vat**: Exclude VAT (for international clients)
+- `--client` — client company name
+- `--contact` — contact person + title
+- `--no-vat` — flag, excludes VAT
 
-### 1.2 Collect ALL Missing Required Fields
+If `--client` or `--contact` is missing, ask via AskUserQuestion. Use multi-question mode to batch:
 
-> **CRITICAL**: If ANY of the following fields are missing from arguments, you MUST ask the user using AskUserQuestion. Do NOT skip any field. Do NOT proceed to Step 2 until all fields are collected.
+- "What is the client company name? (고객사명)"
+- "Who is the contact person and their title? (담당자명 + 직함, e.g., 노대원 CRO님)"
 
-**Required fields to collect (if not provided):**
-
-1. **Client company name** (`--client`)
-   - Ask: "What is the client company name? (고객사명)"
-
-2. **Contact person** (`--contact`)
-   - Ask: "Who is the contact person and their title? (담당자명 + 직함, e.g., 노대원 CRO님)"
-
-You may ask multiple questions at once using AskUserQuestion's multi-question support to minimize back-and-forth.
+Do not proceed to Step 2 until both are collected.
 
 ---
 
-## Step 2: Collect Invoice Line Items
+## Step 2: Collect Invoice Type & Line Items
 
-Use AskUserQuestion to collect the invoice item details.
+### 2.1 Select type
 
-### 2.1 Select Invoice Type
+Ask: "What type of invoice is this?"
 
-Ask the user:
-```
-What type of invoice is this?
-```
+| Type | Required fields | Example |
+|------|-----------------|---------|
+| **Monthly Subscription** (월 결제 구독) | Developer composition, monthly amount (만원), contract start date, billing day | Backend 20h/wk + Frontend 20h/wk, 320만원, 11.18 start, 매월 18일 결제 |
+| **Project-Based** (프로젝트 단위) | Line items (`Item name: Amount 만원`), optional sub-details | 기획 200, Frontend 500, Backend 400 |
+| **Custom** (직접 입력) | Free-form items and amounts — parse into (title, amount) pairs | — |
 
-Options:
-- **Monthly Subscription (월 결제 구독)**: Monthly developer resource subscription model
-- **Project-Based (프로젝트 단위)**: Fixed-price project-based invoice
-- **Custom (직접 입력)**: Enter items manually in free-form
+Collect required fields via AskUserQuestion (multi-question).
 
-### 2.2 If Monthly Subscription Selected
+### 2.2 Amount input format
 
-Ask the user for the following (can combine into one multi-question prompt):
+Users enter amounts in **만원** (10,000 KRW) for convenience. The invoice MUST display full 원 (KRW) with comma formatting.
 
-1. **Developer composition**: "What developers are included? (e.g., Backend developer 20hrs/week, Frontend developer 20hrs/week)"
-2. **Monthly amount**: "What is the monthly subscription amount? (단위: 만원)"
-3. **Contract start date**: "When does the contract start? (e.g., 11.18)"
-4. **Billing date**: "What day of each month is the billing date? (e.g., 18일)"
+| User input | Invoice display |
+|------------|-----------------|
+| 33만원 | 330,000원 |
+| 320만원 | 3,200,000원 |
+| 1200만원 | 12,000,000원 |
 
-### 2.3 If Project-Based Selected
-
-Ask the user:
-
-1. **Line items**: "Please list the invoice items, one per line, in the format 'Item name: Amount (만원)'."
-   ```
-   Example:
-   기획 및 설계: 200
-   프론트엔드 개발: 500
-   백엔드 개발: 400
-   QA 및 테스트: 100
-   ```
-2. **Additional details** (optional): "Any additional details for each item?"
-
-### 2.4 If Custom Selected
-
-Ask the user to provide items and amounts in free-form text. Parse the response to extract item names and amounts.
+Conversion: `value_manwon × 10,000`, then format with commas and append `원`. Use the character `원`, not `₩` or `KRW`.
 
 ---
 
 ## Step 3: Generate HTML
 
-> **SINGLE-PAGE CONSTRAINT**: The invoice MUST render on a single A4 page. The template is pre-tuned for up to ~10 line items. If the rendered PDF exceeds 1 page, shrink proportionally (padding, font sizes, margins) until it fits. See Step 4.4 for the verification loop.
+### 3.1 Invoice number
 
-### 3.1 Generate Invoice Number
+Format: `YYYYMMDD-N` where `N` is a **global continuous counter** (not daily-reset). Seed value = **15** — the company issued 14 invoices outside this system before adoption, so the first invoice produced here is `YYYYMMDD-15`.
 
-Format: `YYYYMMDD-1` (based on today's date)
+1. Read `.claude-project/billing/invoice-records.json`
+2. Scan **all** records, extract the numeric suffix `N` from each `invoiceNo`
+3. If the file is empty or no records exist → `N = 15`
+4. Otherwise → `N = max(existing N) + 1`
 
-Example: `20260303-1`
+Example: if latest record is `20260320-18` → next issued today is `20260421-19`, then `20260421-20`, and so on.
 
-### 3.2 Calculate Amounts
+### 3.2 Compute amounts
 
-- **SUB TOTAL**: Sum of all item amounts
-- **Vat Tax (10%)**: SUB TOTAL × 0.1 (omit if `--no-vat`)
-- **TOTAL**: SUB TOTAL + Vat Tax (equals SUB TOTAL if `--no-vat`)
+- **`SUB TOTAL`** — sum of item amounts, **excluding VAT** (pre-tax)
+- **`Vat Tax (10%)`** — `SUB TOTAL × 0.10` (row omitted if `--no-vat`)
+- **`TOTAL`** — `SUB TOTAL + Vat Tax`, **including VAT** (final amount the client pays). If `--no-vat`, `TOTAL = SUB TOTAL`.
 
-### 3.2.1 Amount Display Rules
+> Never add VAT into `SUB TOTAL`. Never strip VAT from `TOTAL` (except `--no-vat`). The gap between the two rows IS the VAT amount.
 
-> **CRITICAL**: Users provide amounts in 만원 (10,000 KRW) units for convenience. On the invoice, you MUST convert and display the full amount in 원 (KRW) with comma formatting.
+### 3.3 Template file
 
-| User Input | Invoice Display |
-|------------|----------------|
-| 33만원 | 330,000원 |
-| 320만원 | 3,200,000원 |
-| 3.3만원 (VAT) | 33,000원 |
-| 1200만원 | 12,000,000원 |
+Template: `templates/invoice.html` — single-file HTML + inlined CSS, designed against the Brand Tokens above.
 
-**Conversion**: Multiply 만원 value by 10,000, then format with commas and append "원".
+Load the template, substitute placeholders, write to:
 
-**Currency symbol**: Use "원" (not ₩ or KRW).
+- **Directory**: `.claude-project/billing/invoice/` (create if missing)
+- **Filename**: `[Invoice] {ClientName}.html`
 
-### 3.3 Output Location
+### 3.4 Placeholder map
 
-**Directory**: `.claude-project/billing/invoice/`
-**Filename**: `[Invoice] {ClientName}.html`
-
-Create directory if it doesn't exist.
-
-### 3.4 HTML Template
-
-> **IMPORTANT**: Replace all `[PLACEHOLDER]` values with actual data when generating the HTML file.
-
-```html
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>[Invoice] [CLIENT_NAME]</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        @page {
-            size: A4;
-            margin: 0;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-            color: #333;
-            background: #fff;
-            width: 210mm;
-            height: 297mm;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        /* Single-page A4: fixed height + overflow:hidden prevents page break */
-        .page {
-            width: 100%;
-            height: 297mm;
-            padding: 28px 50px 0 50px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        /* Header */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 22px;
-        }
-
-        .header-logo svg {
-            width: 170px;
-            height: auto;
-        }
-
-        .header-right {
-            text-align: right;
-        }
-
-        .header-right .invoice-title {
-            font-size: 30px;
-            font-weight: 800;
-            color: #050042;
-            letter-spacing: 2px;
-        }
-
-        .header-right .invoice-no {
-            font-size: 13px;
-            color: #666;
-            margin-top: 4px;
-        }
-
-        .header-right .invoice-no span {
-            color: #333;
-            font-weight: 500;
-        }
-
-        /* Info Section */
-        .info-section {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 22px;
-        }
-
-        .info-left {
-            text-align: left;
-        }
-
-        .info-right {
-            text-align: right;
-        }
-
-        .info-label {
-            font-size: 11px;
-            color: #999;
-            font-weight: 600;
-            letter-spacing: 1px;
-            margin-bottom: 6px;
-        }
-
-        .info-client-name {
-            font-size: 20px;
-            font-weight: 700;
-            color: #050042;
-            margin-bottom: 3px;
-        }
-
-        .info-contact {
-            font-size: 14px;
-            color: #333;
-            font-weight: 500;
-        }
-
-        .info-company-name {
-            font-size: 17px;
-            font-weight: 700;
-            color: #050042;
-            margin-bottom: 5px;
-        }
-
-        .info-company-detail {
-            font-size: 12px;
-            color: #666;
-            line-height: 1.5;
-        }
-
-        /* Table */
-        .invoice-table {
-            width: 100%;
-            margin-bottom: 16px;
-        }
-
-        .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #624DFF;
-            color: white;
-            padding: 11px 22px;
-            border-radius: 8px 8px 0 0;
-            font-weight: 700;
-            font-size: 14px;
-            letter-spacing: 1px;
-        }
-
-        .table-body {
-            padding: 16px 22px;
-            border: none;
-        }
-
-        .table-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 7px;
-        }
-
-        .item-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .item-price {
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            white-space: nowrap;
-        }
-
-        .item-details {
-            margin-left: 20px;
-            margin-top: 3px;
-            margin-bottom: 10px;
-        }
-
-        .item-detail {
-            font-size: 13px;
-            color: #555;
-            line-height: 1.6;
-            display: flex;
-            align-items: center;
-        }
-
-        .item-detail::before {
-            content: "-";
-            margin-right: 6px;
-            color: #999;
-        }
-
-        .sub-detail {
-            margin-left: 20px;
-        }
-
-        /* Summary */
-        .summary-divider {
-            border: none;
-            border-top: 1px solid #ddd;
-            margin: 10px 0;
-        }
-
-        .summary-section {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            padding: 0 22px;
-            margin-bottom: 14px;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            margin-bottom: 6px;
-            width: 300px;
-        }
-
-        .summary-label {
-            font-size: 13px;
-            color: #666;
-            text-align: right;
-            margin-right: 28px;
-            flex: 1;
-        }
-
-        .summary-value {
-            font-size: 15px;
-            font-weight: 600;
-            color: #333;
-            text-align: right;
-            min-width: 100px;
-        }
-
-        .summary-total .summary-label {
-            font-size: 15px;
-            font-weight: 700;
-            color: #050042;
-        }
-
-        .summary-total .summary-value {
-            font-size: 19px;
-            font-weight: 800;
-            color: #050042;
-        }
-
-        /* Signature */
-        .signature-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-top: auto;
-            /* MUST exceed .bottom-bar height (30px) so Signature/Date labels clear the bar */
-            padding-bottom: 50px;
-        }
-
-        .signature-left {
-            text-align: center;
-        }
-
-        .signature-seal {
-            width: 64px;
-            height: 64px;
-            margin-bottom: 6px;
-            opacity: 0.7;
-        }
-
-        .signature-line {
-            width: 180px;
-            border-top: 1px solid #333;
-            padding-top: 6px;
-            font-size: 12px;
-            color: #666;
-        }
-
-        .signature-right {
-            text-align: center;
-        }
-
-        .signature-date {
-            font-size: 15px;
-            font-weight: 500;
-            color: #333;
-            margin-bottom: 6px;
-        }
-
-        .date-line {
-            width: 180px;
-            border-top: 1px solid #333;
-            padding-top: 6px;
-            font-size: 12px;
-            color: #666;
-        }
-
-        /* Bottom Bar */
-        .bottom-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 30px;
-            display: flex;
-        }
-
-        .bottom-bar-left {
-            flex: 1;
-            background: #624DFF;
-        }
-
-        .bottom-bar-right {
-            flex: 1;
-            background: #4834CC;
-        }
-
-        @media print {
-            body {
-                width: 210mm;
-                height: 297mm;
-            }
-            .page {
-                height: 297mm;
-                overflow: hidden;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="page">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-logo">
-                <!-- LOGO_SVG -->
-            </div>
-            <div class="header-right">
-                <div class="invoice-title">견적서</div>
-                <div class="invoice-no">Invoice No : <span>[INVOICE_NO]</span></div>
-            </div>
-        </div>
-
-        <!-- Info Section -->
-        <div class="info-section">
-            <div class="info-left">
-                <div class="info-label">INVOICE TO</div>
-                <div class="info-client-name">[CLIENT_NAME]</div>
-                <div class="info-contact">[CONTACT_NAME]</div>
-            </div>
-            <div class="info-right">
-                <div class="info-label">COMPANY:</div>
-                <div class="info-company-name">Potential Inc</div>
-                <div class="info-company-detail">
-                    131,Continental Dr<br>
-                    Suite 305 Newark, Delaware<br>
-                    United States
-                </div>
-            </div>
-        </div>
-
-        <!-- Invoice Table -->
-        <div class="invoice-table">
-            <div class="table-header">
-                <span>TITLE</span>
-                <span>PRICE</span>
-            </div>
-            <div class="table-body">
-                [INVOICE_ITEMS]
-            </div>
-        </div>
-
-        <!-- Summary -->
-        <hr class="summary-divider">
-        <div class="summary-section">
-            <div class="summary-row">
-                <span class="summary-label">SUB TOTAL</span>
-                <span class="summary-value">[SUB_TOTAL]원</span>
-            </div>
-            [VAT_ROW]
-            <div class="summary-row summary-total">
-                <span class="summary-label">TOTAL</span>
-                <span class="summary-value">[TOTAL]원</span>
-            </div>
-        </div>
-
-        <!-- Signature -->
-        <div class="signature-section">
-            <div class="signature-left">
-                <img class="signature-seal" src="data:image/svg+xml;base64,[SEAL_BASE64]" alt="seal">
-                <div class="signature-line">Signature</div>
-            </div>
-            <div class="signature-right">
-                <div class="signature-date">[DATE_FORMATTED]</div>
-                <div class="date-line">Date</div>
-            </div>
-        </div>
-
-        <!-- Bottom Bar -->
-        <div class="bottom-bar">
-            <div class="bottom-bar-left"></div>
-            <div class="bottom-bar-right"></div>
-        </div>
-    </div>
-</body>
-</html>
-```
-
-### 3.5 Variable Substitution
-
-| Variable | Value | Example |
-|----------|-------|---------|
+| Placeholder | Value | Example |
+|-------------|-------|---------|
 | `[CLIENT_NAME]` | Client company name | `오누이` |
-| `[CONTACT_NAME]` | Contact person + title | `노대원 CRO님` |
-| `[INVOICE_NO]` | `YYYYMMDD-1` | `20260303-1` |
-| `[INVOICE_ITEMS]` | Item HTML blocks | See below |
-| `[SUB_TOTAL]` | Sum of all items, comma-formatted | `330,000` |
-| `[VAT_ROW]` | VAT row HTML (empty string if `--no-vat`) | See below |
-| `[TOTAL]` | Final total, comma-formatted | `363,000` |
-| `[DATE_FORMATTED]` | `YYYY. MM. DD` | `2026. 03. 03` |
-| `[SEAL_BASE64]` | Seal image as Base64 | See 3.9 |
-| `LOGO_SVG` | Contents of `templates/logo.svg` | SVG markup |
+| `[CONTACT_NAME]` | Contact + title | `노대원 CRO님` |
+| `[INVOICE_NO]` | `YYYYMMDD-N` | `20260421-1` |
+| `[INVOICE_ITEMS]` | HTML for line items (see 3.5) | — |
+| `[SUB_TOTAL]` | Sum in 원, comma-formatted | `3,300,000` |
+| `[VAT_ROW]` | VAT row HTML, or empty string if `--no-vat` | See 3.6 |
+| `[TOTAL]` | Final total in 원, comma-formatted | `3,630,000` |
+| `[DATE_FORMATTED]` | `YYYY. MM. DD` | `2026. 04. 21` |
+| `[SEAL_BASE64]` | Seal image Base64 | See 3.8 |
+| `<!-- LOGO_SVG -->` | Inline SVG contents | See 3.7 |
 
-### 3.6 Item HTML Structure
+### 3.5 `[INVOICE_ITEMS]` HTML
 
-**Monthly Subscription example:**
+**Monthly subscription — single composite block:**
+
 ```html
 <div class="table-item">
     <span class="item-title">세부내역</span>
@@ -617,7 +197,8 @@ Create directory if it doesn't exist.
 </div>
 ```
 
-**Project-Based example (multiple items):**
+**Project-based — one block per line item:**
+
 ```html
 <div class="table-item">
     <span class="item-title">[Item Name]</span>
@@ -625,9 +206,10 @@ Create directory if it doesn't exist.
 </div>
 ```
 
-### 3.7 VAT Row HTML
+### 3.6 `[VAT_ROW]`
 
-When VAT is included (default):
+With VAT (default):
+
 ```html
 <div class="summary-row">
     <span class="summary-label">Vat Tax (10%)</span>
@@ -635,26 +217,36 @@ When VAT is included (default):
 </div>
 ```
 
-When `--no-vat` is specified: empty string (VAT row omitted).
+With `--no-vat`: empty string.
 
-### 3.8 Logo SVG
+### 3.7 Logo SVG — fallback chain
 
-Read `templates/logo.svg` and insert its contents at the `<!-- LOGO_SVG -->` position.
-- If the logo file is not found, skip logo and render without branding.
+Primary asset ships **skill-local** at `templates/logo.svg` (Potential Inc logo, copied from brand Tier 1). Resolve in order:
 
-### 3.9 Seal Image
+1. `templates/logo.svg` (skill-local, Tier 3) — **default, always present**
+2. `../../../../resources/brand/logo/logo.svg` (Tier 1) — recovery if local missing
+3. Render without logo (silent fallback)
 
-**Path**: `templates/seal.png`
+Inline the SVG contents at `<!-- LOGO_SVG -->`.
 
-Read `templates/seal.png`, Base64-encode it, and use as `data:image/png;base64,{encoded}` for the seal `<img>` src.
+### 3.8 Seal image — fallback chain
 
-If the seal file is not found, omit the seal image from the invoice.
+Primary asset ships **skill-local** at `templates/seal.png` (Potential Inc seal, copied from brand Tier 1). Resolve in order:
+
+1. `templates/seal.png` (skill-local, Tier 3) — **default, always present**
+2. `../../../../resources/brand/logo/seal.png` (Tier 1) — recovery if local missing
+3. `../../../../operation/resources/stamp.png` (Tier 2) — secondary recovery
+4. Omit the `<img class="signature-seal">` element
+
+Base64-encode the resolved file and use as `src="data:image/png;base64,{encoded}"`.
+
+> **Global-sync note** — skill-local assets in `templates/` sync cleanly to `~/.claude/skills/invoice/templates/`. Tier 1/2 fallbacks break after sync and exist only for repo-context recovery. Keep `templates/logo.svg` + `templates/seal.png` checked in to avoid global-sync issues. See `operation/CLAUDE.md` → Shared Asset Tiers → Global-sync caveat.
 
 ---
 
 ## Step 4: Convert to PDF
 
-### 4.1 Chrome Headless Command
+### 4.1 Chrome headless
 
 ```bash
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
@@ -665,66 +257,50 @@ If the seal file is not found, omit the seal image from the invoice.
   "file://[ABSOLUTE_HTML_PATH]"
 ```
 
-### 4.2 Output File
+### 4.2 Output
 
-**PDF filename**: `[Invoice] {ClientName}.pdf`
-**Location**: `.claude-project/billing/invoice/` directory
+`.claude-project/billing/invoice/[Invoice] {ClientName}.pdf`
 
-### 4.3 Error Handling
+### 4.3 Error: conversion fails
 
-If PDF conversion fails:
+Report:
+
 ```
-Error: PDF conversion failed.
-Please verify that Google Chrome is installed.
-The HTML file has been saved at: [HTML_PATH]
+Error: PDF conversion failed. Verify Google Chrome is installed.
+HTML saved at: [HTML_PATH]
 ```
 
-### 4.4 Verify Single-Page Output (REQUIRED)
-
-After PDF generation, verify the output is exactly **1 page**. Run:
+### 4.4 Verify single-page output (REQUIRED)
 
 ```bash
 python3 -c "from pypdf import PdfReader; print(len(PdfReader('[PDF_PATH]').pages))"
 ```
 
-If the output is **> 1**:
-1. Reduce layout density in this order until it fits:
-   - `.page` padding-top: 28px → 20px → 16px
-   - `.table-item` margin-bottom: 7px → 5px → 4px
-   - `.info-section` / `.header` margin-bottom: 22px → 16px → 12px
-   - Font sizes: scale all by 0.9x (e.g., 14 → 13, 15 → 14, 20 → 18)
-2. Regenerate HTML + PDF, verify again.
-3. Do NOT report success until page count == 1.
+If result > 1, apply this shrink ladder and regenerate until page count == 1:
 
-`.page { height: 297mm; overflow: hidden; }` already clips overflow, but clipped content is a bug — the content must genuinely fit, not be hidden.
+1. `.page` padding-top: `28px → 20px → 16px`
+2. `.table-item` margin-bottom: `7px → 5px → 4px`
+3. `.info-section` / `.header` margin-bottom: `22px → 16px → 12px`
+4. Scale all font-sizes by `0.9×` (e.g., `14 → 13`, `15 → 14`, `20 → 18`)
+
+Do not report success until page count == 1. `overflow: hidden` on `.page` clips overflow but is not a fix — content must genuinely fit.
 
 ---
 
 ## Step 5: Save to Invoice Records
 
-After generating the HTML and PDF, save the invoice metadata to `.claude-project/billing/invoice-records.json`.
+Append a record to `.claude-project/billing/invoice-records.json` (JSON array; create `[]` if file missing).
 
-### 5.1 Record File
-
-**Path**: `.claude-project/billing/invoice-records.json`
-
-This file is a JSON array that stores all generated invoice records. If the file does not exist, create it with an empty array `[]`.
-
-### 5.2 Record Schema
-
-Append the following object to the JSON array:
+### Record schema
 
 ```json
 {
   "invoiceNo": "YYYYMMDD-N",
   "client": "Client company name",
   "contact": "Contact person name",
-  "type": "Invoice type (월결제/프로젝트/유지보수/etc.)",
+  "type": "월결제 | 프로젝트 | 유지보수 | ...",
   "items": [
-    {
-      "title": "Item description",
-      "amount": 33
-    }
+    { "title": "Item description", "amount": 33 }
   ],
   "subTotal": 33,
   "vat": 3.3,
@@ -733,33 +309,18 @@ Append the following object to the JSON array:
   "date": "YYYY-MM-DD",
   "files": {
     "html": ".claude-project/billing/invoice/[Invoice] ClientName.html",
-    "pdf": ".claude-project/billing/invoice/[Invoice] ClientName.pdf"
+    "pdf":  ".claude-project/billing/invoice/[Invoice] ClientName.pdf"
   }
 }
 ```
 
-### 5.3 Invoice Number Auto-Increment
+Amounts stored in **만원** (same unit the user enters), to match how subsequent analytics aggregate.
 
-When generating the invoice number:
-1. Read `.claude-project/billing/invoice-records.json`
-2. Find all records with today's date prefix (e.g., `20260303-`)
-3. Set the sequence number to max existing + 1
-4. If no records exist for today, start at `1`
-
-Example: If `20260303-1` and `20260303-2` already exist, the next one is `20260303-3`.
-
-### 5.4 How to Save
-
-1. Read the existing `.claude-project/billing/invoice-records.json` file
-2. Parse as JSON array
-3. Append the new record object
-4. Write the updated array back to the file (pretty-printed with 2-space indent)
+Write back pretty-printed (2-space indent).
 
 ---
 
 ## Step 6: Report Result
-
-### Success Message
 
 ```
 Invoice generated successfully.
@@ -771,77 +332,75 @@ Client: [CLIENT_NAME]
 Contact: [CONTACT_NAME]
 Total: [TOTAL]원 (VAT included/excluded)
 
-You can preview the invoice by opening the HTML file in a browser.
+Preview by opening the HTML file in a browser.
 ```
 
 ---
 
-## Error Handling Summary
+## Print Pre-Delivery Checklist
+
+Verify before reporting success:
+
+- [ ] PDF page count == 1 (Step 4.4)
+- [ ] No overflow clipping — content fits naturally, not hidden by `overflow: hidden`
+- [ ] All text meets WCAG AA (≥4.5:1) — see Contrast Ledger; no `#999` on white for meaningful text
+- [ ] Brand tokens match — spot-check `#624DFF` table header, `#050042` title, `#4834CC` bottom-bar right
+- [ ] Inter loaded; Apple SD Gothic Neo / Malgun Gothic fallback present for Korean glyphs
+- [ ] Logo and seal resolved through the documented fallback chain, or gracefully omitted
+- [ ] Currency format — `원` suffix, comma thousands, 만원→원 conversion applied
+- [ ] `SUB TOTAL` = pre-VAT, `TOTAL` = post-VAT (never swap)
+- [ ] Invoice number = `max(existing N) + 1`, seeded at 15 on empty records
+- [ ] `invoice-records.json` appended with the new record
+- [ ] Header title renders as `Invoice` (not `견적서`)
+- [ ] Company block shows Seoul address, `070-4578-8349`, `contact@potentialai.com`
+
+---
+
+## Error Handling
 
 | Scenario | Action |
 |----------|--------|
-| Client name missing | Ask via AskUserQuestion |
-| Contact name missing | Ask via AskUserQuestion |
-| Invoice type not selected | Ask via AskUserQuestion |
-| Line items missing | Ask via AskUserQuestion |
-| Amount missing | Ask via AskUserQuestion |
-| Logo file not found | Use built-in SVG fallback |
-| PDF conversion fails | Report error, provide HTML file path |
-| PDF exceeds 1 page | Shrink per Step 4.4 and regenerate until page count == 1 |
+| Client / contact / type / items missing | Ask via AskUserQuestion |
+| Logo not found (Tiers 1+3) | Render without logo |
+| Seal not found (Tiers 2+3) | Omit seal image |
+| PDF conversion fails | Report error, provide HTML path |
+| PDF > 1 page | Apply Step 4.4 shrink ladder, regenerate |
 
 ---
 
 ## Examples
 
-### Example 1: Monthly Subscription Invoice
+### Monthly Subscription
 
 ```bash
 /generate-invoice --client "오누이" --contact "노대원 CRO님"
 ```
 
-→ Type: Monthly Subscription
-→ Items: 월 결제 구독 320만원 (Backend 20h/wk + Frontend 20h/wk)
+→ Type: Monthly Subscription → 월 결제 구독 320만원 (Backend 20h/wk + Frontend 20h/wk)
 → Output: `.claude-project/billing/invoice/[Invoice] 오누이.pdf`
 
-### Example 2: Project-Based Invoice
+### Project-Based
 
 ```bash
 /generate-invoice --client "테스트회사" --contact "홍길동 PM님"
 ```
 
-→ Type: Project-Based
-→ Items: 기획 200만원, Frontend 500만원, Backend 400만원
+→ Type: Project-Based → 기획 200만원, Frontend 500만원, Backend 400만원
 → Output: `.claude-project/billing/invoice/[Invoice] 테스트회사.pdf`
 
-### Example 3: No Arguments (Fully Interactive)
+### Fully Interactive
 
 ```bash
 /generate-invoice
 ```
 
-→ Will ask for: client name, contact person, invoice type, all line items, amounts
-→ All information collected via AskUserQuestion
+→ Asks for: client, contact, type, items, amounts
 
-### Example 4: International Client (No VAT)
+### International (No VAT)
 
 ```bash
 /generate-invoice --client "Global Corp" --contact "John Smith CEO" --no-vat
 ```
 
-→ VAT row omitted, TOTAL = SUB TOTAL
+→ VAT row omitted, `TOTAL = SUB TOTAL`
 → Output: `.claude-project/billing/invoice/[Invoice] Global Corp.pdf`
-
----
-
-## Brand Guidelines Reference
-
-| Element | Value |
-|---------|-------|
-| Primary Accent | `#624DFF` |
-| Dark Accent | `#4834CC` |
-| Headings | `#050042` |
-| Body Text | `#333333` |
-| Sub Text | `#666666` |
-| Background | `#ffffff` |
-| Font | Inter (Google Fonts) |
-| Logo | `templates/logo.svg` |

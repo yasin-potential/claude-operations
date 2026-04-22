@@ -1,11 +1,14 @@
 ---
 name: generate-proposal
-description: Generate interactive HTML slide proposals (PPT-style) with bilingual support
+description: Generate interactive HTML slide proposals (PPT-style). Supports `--language korean|english` (default `korean`). Korean mode = mixed (left-column titles stay English, only project-content variables translate).
+argument-hint: [--language korean|english]
 ---
 
 # Generate Proposal - Client Proposal HTML Generator
 
-Generate professional client proposals as **interactive HTML slide presentations (PPT-style)** with bilingual support (Korean/English).
+Generate professional client proposals as **interactive HTML slide presentations (PPT-style)**.
+
+Language is controlled by the `--language` flag (see Step 1). `english` produces a fully-English deck. `korean` produces a **mixed Korean deck** — left-column section titles and all hardcoded boilerplate remain English, only the project-content `{{PLACEHOLDER}}` variables are filled in Korean. See "Mixed Korean Mode" section below for the exact scope.
 
 ---
 
@@ -13,13 +16,24 @@ Generate professional client proposals as **interactive HTML slide presentations
 
 ### Step 1: Gather Information
 
-Ask the user for these **required** inputs (if not already provided):
+#### 1a. Parse `$ARGUMENTS` for the `--language` flag
+
+Syntax: `/generate-proposal [--language korean|english]`
+
+- Accepted values: `korean` | `english` (full words only).
+- If the flag is absent, set `LANGUAGE = korean`.
+- If the flag is present with an unrecognized value, stop and reply:
+  > Unknown `--language` value. Use `--language korean` or `--language english`. Default is `korean` when omitted.
+- Store the resolved `LANGUAGE` for use in Step 3 and Step 4.
+
+#### 1b. Ask the user for required inputs
+
+Ask for these **required** inputs (if not already provided). Do **not** re-ask about language — it comes from the flag.
 
 | Input | Question | Default |
 |-------|----------|---------|
 | Client name | "What is the client company name?" | — |
 | Project name | "What is the project title?" | — |
-| Language | "Korean or English?" | `ko` |
 | Total cost | "What is the total project cost (USD)?" | — |
 | Key features | "List the key features of the project" | — |
 | Service flow | "Describe the user/service flow steps" | — |
@@ -38,14 +52,86 @@ cp templates/proposal-template.html ".claude-project/proposals/[Proposal] [PROJE
 
 **Naming**: `[Proposal] Artlive.html`
 
+#### Step 2b: Rewrite the `<base href>` tag
+
+The template uses `<base href="../../../../../../../">` so that image paths (`src=".claude/resources/..."`) resolve from project root when the template is previewed standalone from its own location (7 dirs deep inside `.claude/operation/skills/...`).
+
+After copy to `.claude-project/proposals/` (which is 2 dirs deep from project root), you MUST rewrite the base href:
+
+```bash
+sed -i.bak 's|<base href="\.\./\.\./\.\./\.\./\.\./\.\./\.\./">|<base href="../../">|' ".claude-project/proposals/[Proposal] [PROJECT_NAME].html" && rm ".claude-project/proposals/[Proposal] [PROJECT_NAME].html.bak"
+```
+
+Or use the Edit tool to perform the same replacement. Skipping this step causes all images to 404 in the output HTML.
+
 ### Step 3: Set Language
 
-Change `<html lang="ko">` or `<html lang="en">` on line 2.
-The CSS handles showing/hiding `data-lang` spans automatically.
+Branch on the `LANGUAGE` resolved in Step 1a:
+
+- **`LANGUAGE = english`** → keep `<html lang="en">` on line 2. Fill every `{{PLACEHOLDER}}` in English.
+- **`LANGUAGE = korean` (mixed mode)** → **keep `<html lang="en">`** on line 2. Do NOT change it to `ko`. The template's `data-lang="ko"` CSS would swap hardcoded boilerplate to Korean, which mixed mode intentionally avoids. Do not edit any hardcoded English text in the template. Only the project-content variables in Step 4 are filled in Korean — see "Mixed Korean Mode" section below for the exact list.
 
 ### Step 4: Replace All Variables
 
 Replace every `{{PLACEHOLDER}}` with project-specific content. See **Variables Reference** below.
+
+In mixed Korean mode (`LANGUAGE = korean`), fill variables according to the "Mixed Korean Mode" table below — some variables translate to Korean, others stay English.
+
+---
+
+## Mixed Korean Mode — What Translates vs Stays English
+
+When `LANGUAGE = korean`, the template file stays untouched except for the `{{PLACEHOLDER}}` variable substitutions. Apply the following rules:
+
+### Translates to Korean (project-content variables)
+
+Fill these with Korean text in Korean mode, English text in English mode:
+
+| Variable | Example (Korean mode) |
+|----------|----------------------|
+| `{{FEATURES_LIST}}` | `<li>진단 설문 및 결과 리포트</li>` |
+| `{{SERVICE_FLOW_TITLE}}` | `기본 진단-상담 플로우` |
+| `{{SERVICE_FLOW_STEPS}}` | `<li>부모가 진단 설문을 완료합니다</li>` |
+| `{{ADMIN_FEATURES}}` | `<div class="pill-badge">사용자 관리</div>` |
+| `{{OUR_COMMENT_TITLE}}` | `개선 제안 2가지` |
+| `{{OUR_COMMENTS}}` | `<li>MVP에서는 UX를 단순화해야 합니다</li>` |
+| `{{MVP_FEATURES}}` | `<li>Toss 결제 연동</li>` |
+| `{{POST_MVP_FEATURES}}` | `<li>화상 상담 연동</li>` |
+| `{{POST_MVP_FEATURES_2}}` | `<li>전문가별 맞춤 견적</li>` |
+| `{{TEAM_MEMBERS_FAQ}}` | `<li>경력 10년 PM</li>` |
+| `{{MILESTONE_1_NAME}}` ~ `{{MILESTONE_3_NAME}}` | `프로젝트 착수 (계약 체결)` |
+| `{{TIMELINE}}` | `3개월` |
+
+Also translate the following hardcoded slide-body blocks (title stays English per "never edit left-column titles" rule — only the card body content translates):
+
+- **Our Process (Slide 7)** — translate the 4 step cards: Step-number pill (`Step 01` → `단계 01`), step name h3 (`Discovery & Research` → `발굴 & 리서치`; `Design & Development` → `디자인 & 개발`; `Testing & Deployment` → `테스트 & 배포`; `Maintenance & Growth` → `유지보수 & 성장`), and the step description paragraph. Left-column title `Our / Process` stays English.
+- **What is Behance? (Slide 10)** — translate the right-column body: the "Behance is the Biggest Portfolio platform…" lead paragraph, the "Why it's difficult to be featured?" sub-heading (→ `Featured 선정이 어려운 이유`), and its bullet ("features only 1 project a week" → `주 1개 프로젝트만 Featured로 선정`). Left-column title `What is / Behance?` stays English. The word "Behance" itself stays English everywhere (brand name); "Featured" may stay English as a loanword, as it's commonly used in Korean design parlance.
+- **Featured on Behance (Slide 11)** — card bodies stay English (they're images + generic "Check Out" CTA). Left-column title `Featured 4 Times on Behance` stays English. When generating, collect the 4 Behance gallery URLs from the user and wire each card to its specific URL; fall back to the company profile `https://www.behance.net/potentipotenti` if a specific URL is not provided.
+- **To Client FAQ (Slide 14)** — translate every Q (h3) and A (p/ul body) in the 5 glass-card FAQ stack: agreement timing, project duration, server hosting cost, team composition, extra cost policy. Left-column title `To / Client` stays English. Team-composition bullets (e.g., `10 year experienced PM` → `경력 10년 PM`) follow the pattern in the Korean example.
+- **Our Pricing (Slide 15)** — translate table headers (`Milestone` → `마일스톤`, `Payment Due` → `지급 시점`, `Amount (USD)` → `금액 (USD)`), row labels (`Project Kickoff (Contract Signed)` → `프로젝트 착수 (계약 체결)`, `After Delivery` → `납품 완료 후`, `Total Project Cost` → `총 프로젝트 비용`), and the section header `Only Design` → `디자인 전용`. Left-column title `Our / Pricing` and the `PROJECT BASED` pill badge stay English (they sit in the left column). All dollar amounts and percentages stay as-is.
+
+### Stays English (always, in both modes)
+
+Do not translate these. In Korean mode leave them in English:
+
+- `{{CLIENT_NAME}}` — e.g., `Artlive`, `ChildSocial`
+- `{{PROJECT_NAME}}` — e.g., `ChildSocial MVP`
+- All currency amounts (`{{TOTAL_COST}}`, `{{MILESTONE_N_AMOUNT}}`, `{{MVP_AMOUNT}}`, `{{POST_MVP_AMOUNT}}`, `{{POST_MVP_2_AMOUNT}}`, `{{MILESTONE_N_PERCENT}}`) — keep USD format like `$20,000`, `30%`.
+
+### Hardcoded template content (never edit)
+
+The following are hardcoded in `templates/proposal-template.html` and must stay **exactly as-is** in both modes:
+
+- All left-column section titles: "Who We are", "Client Request", "Table of Content", "Our Portfolio", "Our Process", "Tech Stack", "Our Clients", "Expert Team", "Clutch Reviews", "Contact Us", "Thank You", etc.
+- The Who-We-Are agency description ("We're a Design and Development focused agency…")
+- Every portfolio case-study slide (DiaFit, Stockify, PET, Mentora, Agrilo) — titles, descriptions, metrics
+- Behance explanation, Featured Projects labels
+- All Clutch review cards
+- All team section headers and bio text
+- All Contact Us office blocks
+- Button labels ("Visit Website", "Learn more")
+- Chapter numbers ("Chapter - 1", "Chapter - 2", …)
+- Stats on the cover / Who-We-Are slides ("40+ Team member", "100+ Successful Project", "3+ Years of Experience")
 
 ### Step 5: Embed Images as Base64
 
@@ -76,6 +162,55 @@ grep -c '{{' ".claude-project/proposals/[Proposal] [PROJECT_NAME].html"
 ```
 
 Expected: `0`
+
+### Step 7: Publish — share as HTTPS URL
+
+Two paths; pick whichever fits your workflow.
+
+#### Prerequisite: bundle the HTML + assets
+
+Both paths need the bundle folder. It's what gets uploaded.
+
+```bash
+python3 scripts/bundle-for-netlify.py ".claude-project/proposals/[Proposal] [PROJECT_NAME].html"
+```
+
+Produces a sibling folder `.claude-project/proposals/[Proposal] [PROJECT_NAME]-bundle/` with:
+- `index.html` — the HTML with `<base>` stripped and every `src="..."` rewritten to `assets/<original-subpath>`
+- `assets/` — every referenced image/svg copied over, preserving its subpath so filename collisions are impossible
+
+The script HTML-decodes entities (`&amp;` → `&`) before filesystem lookups so project-image filenames with `&` in them resolve correctly. Expected bundle size: ~10–30MB.
+
+#### Path A — CLI (recommended, one command)
+
+One-time setup (per machine, per teammate):
+
+```bash
+npm i -g netlify-cli
+netlify login   # opens browser, authorize once
+```
+
+Then deploy in one command. `scripts/publish.sh` runs the bundler first, then `netlify deploy`:
+
+```bash
+bash scripts/publish.sh ".claude-project/proposals/[Proposal] [PROJECT_NAME].html"
+# production (stable URL):
+# → https://<site-name>.netlify.app
+
+# or a draft preview URL:
+bash scripts/publish.sh ".claude-project/proposals/[Proposal] [PROJECT_NAME].html" --draft
+```
+
+First run per bundle folder is interactive — netlify-cli asks whether to create a new site or link to an existing one. Pick "Create & configure a new site" for a fresh deck; pick "Link this directory to an existing site" to redeploy updates to the same URL.
+
+#### Path B — Netlify Drop (no CLI, no login)
+
+1. Open https://app.netlify.com/drop in a browser.
+2. Drag the **entire bundle folder** onto the drop zone.
+3. Wait ~10s. Netlify returns an HTTPS URL like `proposal-childsocial-abc123.netlify.app`.
+4. Send that URL to the client.
+
+Fastest for ad-hoc one-offs. Each drop = new URL unless you later claim the site to an account.
 
 ---
 
