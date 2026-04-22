@@ -1,5 +1,7 @@
 # Korean Boilerplate Content (한국어)
 
+> **Not applied by mixed Korean mode.** The current `/generate-proposal --language korean` flow is a mixed mode — left-column section titles and all hardcoded boilerplate stay English, only project-content `{{PLACEHOLDER}}` variables are filled in Korean. The strings below are reserved for a potential future full-Korean mode that would swap the template's boilerplate via the `data-lang` CSS trick. See `SKILL.md` → "Mixed Korean Mode".
+
 All Korean text used in boilerplate (non-project-specific) slides.
 
 ---

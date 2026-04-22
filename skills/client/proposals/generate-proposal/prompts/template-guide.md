@@ -195,7 +195,15 @@ The feature-based pricing slide has **3 groups**: MVP, Post-MVP, and Post-MVP 2.
 
 ## Language Switching
 
-The template uses `data-lang` attributes for bilingual support:
+**Entry point**: the `--language korean|english` flag on `/generate-proposal` (default `korean`). See `SKILL.md` → Step 1a.
+
+**Important**: mixed Korean mode keeps `<html lang="en">` on purpose. It does NOT use the `data-lang` CSS swap described below — if you set `<html lang="ko">`, the hardcoded boilerplate (Who We Are description, Our Process steps, portfolio case studies, etc.) would swap to Korean, and mixed mode intentionally avoids that.
+
+In the current mixed-mode implementation:
+- `LANGUAGE = english` → `<html lang="en">`, every `{{PLACEHOLDER}}` filled in English.
+- `LANGUAGE = korean` → `<html lang="en">` (unchanged), project-content `{{PLACEHOLDER}}` variables filled in Korean. See `SKILL.md` → "Mixed Korean Mode" for the exact scope of what translates.
+
+**Legacy `data-lang` CSS framework** (not used by mixed mode; reserved for a potential future full-Korean mode):
 
 ```html
 <!-- Set language in <html> tag -->
