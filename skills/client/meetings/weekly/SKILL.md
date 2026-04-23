@@ -2,7 +2,7 @@
 name: weekly
 description: "Generate a branded weekly meeting agenda (markdown) + presentation (HTML) from codebase activity, prior meeting notes, and user input. Auto-collects git log, changelogs, and scope docs, then interviews the user for Slack/team inputs. Output: internal agenda doc + client-facing slides."
 user-invocable: true
-argument-hint: "[--project 'name'] [--week 'N']"
+argument-hint: "[--project 'name'] [--week 'N'] [--lang en|ko]"
 ---
 
 # Weekly Meeting Generator
@@ -47,6 +47,13 @@ Generate weekly client meeting materials from a project's codebase state and use
 Extract from `$ARGUMENTS`:
 - **--project**: Project name (optional — auto-detect from CWD folder name if omitted)
 - **--week**: Week number (optional — auto-compute from prior meeting docs)
+- **--lang**: Output language for generated artifacts — `en` or `ko` (optional)
+
+**Language flag behavior — flag with interview fallback:**
+- If `--lang` is provided on the command line, use that value directly and **skip Step 2 Round 0**.
+- If `--lang` is **not** provided, defer the decision to Step 2 Round 0 (interactive prompt). The default when the user skips the prompt is `en`.
+- Language only affects **Step 4 (Generate Artifacts)** — data collection (Step 1), interview context (Step 2 Rounds 1–3), and synthesis (Step 3) stay language-neutral.
+- Both artifacts (internal agenda + client presentation) follow the same resolved `lang` value — they are not split.
 
 ### 1.2 Determine Date Range
 
@@ -100,6 +107,22 @@ Extract:
 ## Step 2: Interview User
 
 Use AskUserQuestion to gather context the codebase can't provide. Group into minimal rounds.
+
+**Round 0 — Output Language** (only if `--lang` flag was NOT provided in Step 1.1):
+
+```
+Which language should the generated artifacts be rendered in?
+
+Options:
+- en — English (default, matches the global English-Only Documentation rule)
+- ko — Korean (recommended when the client channel communicates in Korean)
+
+Commit hashes, file paths, project/tech names, and ISO dates stay in English either way.
+```
+
+Single-choice question (en / ko). If the user does not answer or cancels, fall back to the default `en`. Store the answer as the effective `lang` value and proceed — do not ask again in later rounds.
+
+Skip this round entirely if `--lang` was passed on the command line — the flag overrides the interview.
 
 **Round 1 — Team & Slack Context:**
 
@@ -184,6 +207,78 @@ Create the directory if it doesn't exist.
 - `[Weekly] {ProjectName} ({YYYY-MM-DD}).html` — client slides
 
 Both files share the same base name; only the extension differs. The week number (`W{NN}`) is no longer part of the filename — it is rendered inside the document content instead.
+
+### 4.1.1 Language Rendering (applies to 4.2 and 4.3–4.5)
+
+Apply the `--lang` value (default `en`) to every user-visible string in both artifacts. The same value is used for the `.md` and the `.html` — the two outputs always match.
+
+**Translate (language-dependent):**
+- All section headings and slide titles (`This Week's Progress`, `Decisions Needed from Client`, etc.)
+- Table column headers (`Item`, `Recommendation`, `Deadline`, `Fallback`, `Details`, `Asset`, `#`)
+- Labels in the markdown metadata block (`Date`, `Covers`, `Phase 2 Sprint Week`)
+- Cover-slide labels (`WEEKLY MEETING`, `WEEK {NN}`, `PHASE N`)
+- Carry-forward badge text (`carry-over from W{N-1}`)
+- Deadline tags' textual framing (e.g., "(4 days)" → "(4일)"); the date itself (`2026-04-25`) stays as-is
+- Body copy of recommendations, descriptions, and blocker explanations
+- Q&A and Thank You slides' subtitles
+- Status wording (`Completed`, `In Progress`, `Blocker`)
+
+**Keep in English regardless of `--lang` (technical / brand identifiers):**
+- Commit hashes (`abc1234`), file paths, code symbols
+- Project name, tech-stack terms (NestJS, React Native, WebRTC, etc.)
+- Numbers and ISO dates (`2026-04-25`)
+- Copyright footer line (`Copyright {YEAR}. Potential INC. All rights reserved`)
+- The `Q&A` title itself (kept as "Q&A" in both languages — it is a global convention)
+- Email address (`contact@potentialai.com`)
+
+**Canonical string map (English → Korean):**
+
+| English | Korean |
+|---|---|
+| WEEKLY MEETING | 주간 미팅 |
+| Weekly Meeting W{NN} | 주간 미팅 {NN}주차 |
+| WEEK {NN} · PHASE {P} | {NN}주차 · PHASE {P} |
+| Agenda | 안건 |
+| This Week's Progress | 이번 주 진행사항 |
+| Completed | 완료 |
+| In Progress | 진행 중 |
+| Next Week Plan | 다음 주 계획 |
+| Decisions Needed from Client | 클라이언트 결정 필요 항목 |
+| Asset & Resource Requests | 자산 · 리소스 요청 |
+| Asset / Resource Requests | 자산 · 리소스 요청 |
+| Blockers & Risks | 블로커 · 리스크 |
+| Meeting Focus (Top Items) | 미팅 집중 사항 |
+| Meeting Focus — Top 3 Items | 미팅 집중 사항 — 핵심 3가지 |
+| Reference — Source Data | 참고 — 원본 데이터 |
+| Date | 날짜 |
+| Covers | 기간 |
+| Phase N Sprint Week | Phase N 스프린트 주차 |
+| Item | 항목 |
+| Our Recommendation | 권고사항 |
+| Recommendation | 권고 |
+| Deadline | 마감일 |
+| Asset | 자산 |
+| Details | 상세 |
+| Fallback | 대체안 |
+| Fallback if missed | 미수령 시 대체안 |
+| Status | 상태 |
+| Blocker | 블로커 |
+| Open decisions | 미결 결정사항 |
+| Pending assets | 미수령 자산 |
+| carry-over from W{N-1} | {N-1}주차 이월 |
+| (carry-over from W{N-1}) | ({N-1}주차 이월) |
+| Questions & Discussion | 질의 · 토론 |
+| THANK YOU | 감사합니다 |
+| Prior meeting | 이전 미팅 |
+| Scope doc | 스코프 문서 |
+| none (first weekly meeting) | 없음 (첫 주간 미팅) |
+| Internal deadline | 내부 마감 |
+| Client deadline | 클라이언트 마감 |
+
+**Tone in Korean mode:**
+- Use 존칭형 (`~습니다`, `~합니다`) for client-facing prose (HTML body copy, recommendation cells)
+- Use 서술형 (`~함`, `~됨`) is acceptable in markdown table cells for brevity
+- Keep Korean tables compact — avoid line-wrapping cells
 
 ### 4.2 Agenda Markdown Template
 
@@ -329,6 +424,7 @@ Weekly meeting materials generated.
 Week:         W{NN}
 Date:         {YYYY-MM-DD}
 Project:      {PROJECT_NAME}
+Language:     {en|ko}
 Covers:       {PRIOR_DATE} ~ {TODAY} ({N} commits)
 
 Files:
@@ -388,6 +484,15 @@ Open the HTML in browser for the meeting:
 /weekly --week 5
 ```
 - Forces week label to W05 (useful when a week was skipped)
+
+### Example 4: Korean Output (Client-facing)
+
+```bash
+/weekly --project "Blink" --lang ko
+```
+- All slide titles, table headers, labels, and body copy rendered in Korean
+- Commit hashes, file paths, project name, and ISO dates stay in English / numeric
+- Use this mode when the client channel communicates in Korean
 
 ---
 
