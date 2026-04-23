@@ -10,8 +10,9 @@ Team-only tools — not client-facing.
 | [kb/](kb/) | `/kb <command>` | Knowledge base — ingest, compile, query |
 | [tickets/](tickets/) | `/ticketcreator` | Structured ticket generation |
 | [training/](training/) | `/generate-random-project` | Random project specs for team training |
+| [korea/](korea/) | `/hwp-analyze`, `/hwp-fill`, `/hwp-template` | Korean HWP/HWPX form analysis, filling, and template management |
 
 ## Naming Convention
 
 - **Operations repo**: `skills/internal/{skill-name}/`
-- **Global skills** (`~/.claude/skills/`): `{skill-name}/` (flattened — e.g., `sop/`, `kb/`, `tickets/`, `training/`)
+- **Global skills** (`~/.claude/skills/`): `{skill-name}/` (flattened — e.g., `sop/`, `kb/`, `tickets/`, `training/`, `hwp-analyze/`, `hwp-fill/`, `hwp-template/`)
