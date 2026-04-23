@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "description": "D&B iUpdate registration form schema. Selectors are best-guess; verify with `npm run codegen -- https://iupdate.dnb.com` and update.",
+    "source-of-values": "1Password item 'DUNS Registration'. Env vars are loaded via op run."
+  },
+  "companySearch": {
+    "fields": [
+      { "name": "companyName", "selector": "input[name='companyName']", "kind": "text", "value": "${DUNS_COMPANY_NAME_EN}", "validateValue": true, "required": true },
+      { "name": "country", "selector": "select[name='country']", "kind": "select", "value": "KR", "validateValue": true, "required": true }
+    ]
+  },
+  "companyDetails": {
+    "fields": [
+      { "name": "legalNameEn", "selector": "input[name='legalName']", "kind": "text", "value": "${DUNS_COMPANY_NAME_EN}", "validateValue": true, "required": true },
+      { "name": "legalNameKo", "selector": "input[name='legalNameLocal']", "kind": "text", "value": "${DUNS_COMPANY_NAME_KO}", "validateValue": true, "required": true },
+      { "name": "representative", "selector": "input[name='ceoName']", "kind": "text", "value": "${DUNS_REPRESENTATIVE}", "validateValue": true, "required": true },
+      { "name": "businessRegistrationNumber", "selector": "input[name='taxId']", "kind": "text", "value": "${DUNS_BUSINESS_REGISTRATION_NUMBER}", "validateValue": true, "required": true },
+      { "name": "address", "selector": "textarea[name='address']", "kind": "text", "value": "${DUNS_ADDRESS_EN}", "validateValue": true, "required": true },
+      { "name": "phone", "selector": "input[name='phone']", "kind": "tel", "value": "${DUNS_PHONE}", "validateValue": true, "required": true },
+      { "name": "email", "selector": "input[name='email']", "kind": "email", "value": "${DUNS_EMAIL}", "validateValue": true, "required": true }
+    ]
+  }
+}

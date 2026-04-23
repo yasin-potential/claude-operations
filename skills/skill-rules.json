@@ -11,6 +11,11 @@
         "pathPatterns": [".claude-project/prd/*_PRD_*.md"]
       },
       "blockMessage": "BLOCKED: Input classification required before PRD modification.\n\nRun input-classifier skill first to analyze the input file.\nThis ensures proper handling of Q&A answers vs scope changes."
+    },
+    "browser-signup": {
+      "type": "default",
+      "priority": "high",
+      "file": "automation/browser-signup/SKILL.md"
     }
   }
 }
