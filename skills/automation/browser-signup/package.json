@@ -1,0 +1,22 @@
+{
+  "name": "browser-signup",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Playwright framework for signup/KYC flows with human-in-the-loop pauses. Credentials via 1Password.",
+  "scripts": {
+    "check": "op run --account team-potentialai.1password.com --env-file=.env.1password.test -- node check-env.mjs",
+    "check:live": "op run --account team-potentialai.1password.com --env-file=.env.1password.live -- node check-env.mjs",
+    "flow": "op run --account team-potentialai.1password.com --env-file=.env.1password.test -- npx playwright test",
+    "flow:live": "op run --account team-potentialai.1password.com --env-file=.env.1password.live -- npx playwright test",
+    "flow:client": "bash scripts/run-flow.sh",
+    "codegen": "npx playwright codegen",
+    "show-trace": "npx playwright show-trace",
+    "show-report": "npx playwright show-report",
+    "smoke": "op run --account team-potentialai.1password.com --env-file=.env.1password.test -- npx playwright test framework/__tests__"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.48.0",
+    "dotenv": "^16.4.5"
+  }
+}

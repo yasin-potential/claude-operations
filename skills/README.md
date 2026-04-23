@@ -9,6 +9,7 @@ All reusable Claude Code skills, organized by purpose.
 | [client/](client/) | Everything the client sees — PRD, meetings, billing, reports, proposals | 13 |
 | [internal/](internal/) | Team-only tools — SOP, knowledge base, tickets, training data | 4 |
 | [app-release/](app-release/) | App store release pipeline (`/store-ship` orchestrator) | 7 |
+| [automation/](automation/) | Browser and workflow automation — signup, KYC, portal flows | 1 |
 
 ## Client Sub-Categories
 

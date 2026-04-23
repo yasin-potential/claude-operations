@@ -1,0 +1,12 @@
+node_modules/
+artifacts/
+playwright-report/
+test-results/
+.env
+.env.local
+*.log
+
+# Client-specific env files (committed ones are .env.1password.test / .live for Potential-internal use)
+.env.1password.*
+!.env.1password.test
+!.env.1password.live
