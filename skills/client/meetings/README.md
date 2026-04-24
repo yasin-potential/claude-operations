@@ -9,6 +9,7 @@ Branded HTML presentations for live client meetings.
 | [kickoff/](kickoff/SKILL.md) | `/kickoff` | Project start meeting | `[Kickoff] {ProjectName}.html` (11 slides) |
 | [weekly/](weekly/SKILL.md) | `/weekly` | Weekly client meeting | `[Weekly] {ProjectName} ({YYYY-MM-DD}).md` + `.html` |
 | [closing/](closing/SKILL.md) | `/closing` | Project completion meeting | `[Closing] {ProjectName} ({YYYY-MM-DD}).html` (11 slides) |
+| [mm/](mm/SKILL.md) | `/mm` | After any meeting | `[MM] {ProjectName} ({YYYY-MM-DD}).md` + Slack summary |
 
 ## Shared Design
 
@@ -31,4 +32,4 @@ Weekly and closing reference these sections by anchor — they never duplicate C
 
 - **Operations repo**: `skills/client/meetings/{name}/`
 - **Global skills** (`~/.claude/skills/`): `{name}/` (e.g., `kickoff/`, `weekly/`, `closing/`)
-- **Slash commands**: `/kickoff`, `/weekly`, `/closing`
+- **Slash commands**: `/kickoff`, `/weekly`, `/closing`, `/mm`
