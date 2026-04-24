@@ -320,6 +320,18 @@ Use product-surface categories (what the client sees in the product), not engine
 
 All the rules above apply to the rendered language. If `output_language = "ko"`, use the Korean terms from the PRD (e.g. `서류함` instead of "Document cabinet", `공지사항` instead of "Notices"). Never mix languages within a single artifact.
 
+**Time-axis labels — disambiguate Summary (past) from Plan (future):**
+
+The Summary section recaps the past 7 days; the This Week Plan section commits to the next 7 days. The English template historically used "Delivered this week" / "Active this week" for Summary AND "This Week Plan" for the forward section — which read fine in English but caused real confusion in Korean (`이번주 진행` vs `이번주 계획` overlap). Render the headings so the time axis is unambiguous in BOTH languages:
+
+| Section | English heading | Korean heading (`output_language = "ko"`) |
+|---|---|---|
+| Summary → delivered bucket | `Last week — Delivered` | `지난주 완료` |
+| Summary → active bucket | `Last week — In progress` | `지난주 진행 (계속)` |
+| This Week Plan | `This Week Plan` | `이번주 계획` |
+
+The data model field names (`delivered[]`, `active[]`) are unchanged — only the rendered headings shift to past-tense framing for Summary. The Plan stays future-tense. This applies to the Agenda `.md` headings, the Slide 2 sub-section labels, and any reference in client-facing copy.
+
 **Agenda `.md` has looser rules:** the PM is the audience. Ticket IDs and commit hashes are allowed in the Reference column or the §7 Source Data section for traceability. Body text should still be plain-language where possible — the PM copies blocks of the Agenda into the Slides later.
 
 ---
@@ -481,16 +493,18 @@ Slack will render the emoji + trailing text inline; no formatting markers requir
 ## 1. Summary
 
 - **Health:** {🟢 | 🟡 | 🔴} {note}
-- **Delivered this week:**
+- **Last week — Delivered:**  *(ko: `지난주 완료`)*
 {for each `delivered[]` entry (omit the bullet entirely if delivered is empty):}
   - *{theme}* — {summary}
-- **Active this week:**
+- **Last week — In progress:**  *(ko: `지난주 진행 (계속)`)*
 {for each `active[]` entry:}
   - *{theme}* — {summary}
 
 The weekly Summary is **retrospective only** and splits into TWO buckets:
-- *Delivered* = one-shot milestones that closed this week (PRD finalized, design handed off, etc.). Empty-is-OK — some weeks just don't close a milestone.
-- *Active* = ongoing themes with progress this week. Default for most rows. These are never "done" mid-project, so no status label is needed — their presence in the list = "we progressed this here".
+- *Delivered (지난주 완료)* = one-shot milestones that closed last week (PRD finalized, design handed off, etc.). Empty-is-OK — some weeks just don't close a milestone.
+- *In progress (지난주 진행)* = ongoing themes that progressed last week. Default for most rows. These are never "done" mid-project, so no status label is needed — their presence in the list = "we progressed this here".
+
+Time-axis discipline: the Summary's two buckets describe the **past** week. The "This Week Plan" section in §3 describes the **next** week. Never label Summary buckets with "이번주" or "this week" alone — see §3.1 Time-axis labels.
 
 No status column, no `done/in_progress` labels. The two buckets carry that information by where an item is placed.
 
@@ -506,7 +520,7 @@ Project-level milestones belong in the kickoff deck; the meeting agenda is in th
 |---|-------------------------|--------|--------|
 {rows; Status column uses ✓ done / → in progress / ✗ missed / ~ descoped}
 
-### Delivered this week
+### Last week — Delivered  *(ko: `지난주 완료`)*
 
 {If delivered[] has rows:}
 
@@ -514,13 +528,13 @@ Project-level milestones belong in the kickoff deck; the meeting agenda is in th
 |---|-------|-------------|---------|
 {for each delivered[] row, with commit refs as inline code}
 
-### Active this week
+### Last week — In progress  *(ko: `지난주 진행 (계속)`)*
 
 | # | Theme | What progressed | Commits |
 |---|-------|-----------------|---------|
 {for each active[] row, with commit refs as inline code}
 
-*NO status column on the Delivered/Active sub-tables — placement in the section IS the status signal. Commits column here is Agenda-only (PM reference); client-facing slide drops it.*
+*NO status column on the Delivered/In-progress sub-tables — placement in the section IS the status signal. Commits column here is Agenda-only (PM reference); client-facing slide drops it.*
 
 ---
 
@@ -591,8 +605,8 @@ _Notes:_
 | # | Slide | Content |
 |---|-------|---------|
 | 1 | Cover | `WEEKLY MEETING` / {PROJECT_NAME} / `Week {NN} · {YYYY-MM-DD}` |
-| 2 | Summary | Health badge (🟢/🟡/🔴) + **two themed tables**: Delivered (one-shot milestones) and Active (ongoing themes with progress). No Status column, no milestone, no meeting focus. Summary IS the last-week slide — there is no separate Last Week Review slide. |
-| 3 | This Week Plan | Table: Item / Owner / Due |
+| 2 | Summary | Health badge (🟢/🟡/🔴) + **two themed tables** with past-tense headings: "Last week — Delivered" (one-shot milestones closed) and "Last week — In progress" (ongoing themes that progressed). Korean renders as `지난주 완료` / `지난주 진행 (계속)` — see §3.1 Time-axis labels. No Status column, no milestone, no meeting focus. Summary IS the last-week slide — there is no separate Last Week Review slide. |
+| 3 | This Week Plan  *(ko: `이번주 계획`)* | Table: Item / Owner / Due. Forward-looking — describes the NEXT 7 days, not the week just passed. |
 | 4 | Decisions Needed | Styled table; carry-forward rows show `[W{N-1}]` badge |
 | 5 | Asset Requests | Table with deadlines (< 7 days rendered in red), fallback column |
 | 6 | Discussion Items | Card-per-topic layout: topic title + bullet points + optional notes/caveats. Omit slide if `discussion_items` is empty. |
@@ -618,12 +632,14 @@ Week {NN} · {YYYY-MM-DD}
 
 **Slide 2 (Summary)** — retrospective only. Layout:
 - Row 1: Health badge + one-line note
-- Row 2: subheading "Delivered" + small table (Theme / What closed) — 1–2 rows typical, omit whole block if `delivered` is empty
-- Row 3: subheading "Active this week" + small table (Theme / What progressed) — 3–5 rows
+- Row 2: subheading `Last week — Delivered` (ko: `지난주 완료`) + small table (Theme / What closed) — 1–2 rows typical, omit whole block if `delivered` is empty
+- Row 3: subheading `Last week — In progress` (ko: `지난주 진행 (계속)`) + small table (Theme / What progressed) — 3–5 rows
 
-**No Status column anywhere.** The bucket is the status — "Delivered" means closed, "Active" means in progress. Don't add `done`/`in progress` badges; they're redundant and — historically — easily misapplied.
+**No Status column anywhere.** The bucket is the status — Delivered means closed last week, In-progress means progressed last week. Don't add `done`/`in progress` badges; they're redundant and — historically — easily misapplied.
 
-**Never claim Delivered without PRD-scope closure.** A fixed page, a wired admin flow, or a single-language i18n pass is NOT Delivered. If unsure, put it in Active. See §3 synthesis rules.
+**Never claim Delivered without PRD-scope closure.** A fixed page, a wired admin flow, or a single-language i18n pass is NOT Delivered. If unsure, put it in `active[]`. See §3 synthesis rules.
+
+**Headings must name the time axis.** Summary buckets = past week. Plan section = next week. Never label Summary as "이번주" or "This week" alone — that collides with the Plan slide. See §3.1 Time-axis labels for the canonical heading set.
 
 **Do NOT** render a milestone line, meeting-focus list, or any prose sentence here. Plain-language theme labels only; no ticket IDs or commit hashes on this slide (those stay in Agenda §Reference).
 
@@ -660,12 +676,12 @@ Run the full 13-point checklist from [kickoff/SKILL.md §4.8](../kickoff/SKILL.m
 
 | # | Check | Severity |
 |---|---|---|
-| W-1 | Summary slide renders Health badge (correct color token: green=`--ok`, yellow=`--warn`, red=`--err`) + one-line health note + TWO sub-sections: "Delivered" (may be empty-omitted) and "Active this week". NO Status column, NO milestone, NO meeting-focus list, NO prose. | HIGH |
+| W-1 | Summary slide renders Health badge (correct color token: green=`--ok`, yellow=`--warn`, red=`--err`) + one-line health note + TWO sub-sections with past-tense headings: `Last week — Delivered` (may be empty-omitted) and `Last week — In progress`. Korean output uses `지난주 완료` / `지난주 진행 (계속)`. NEVER "이번주 진행" / "Active this week" (collides with the This Week Plan slide). NO Status column, NO milestone, NO meeting-focus list, NO prose. | HIGH |
 | W-2 | Summary slide's tables: Theme pill + What-shipped/What-progressed text. No Status badges, no `done`/`in progress` labels — the section header carries the bucket semantics. There is NO separate "Last Week Review" slide. | HIGH |
 | W-3 | This Week Plan table: every row has non-empty Owner and Due cells | HIGH |
 | W-4 | Decisions Needed: every row has recommendation + deadline; carry-forward rows show `[W{N-1}]` badge with `var(--warn)` background | HIGH |
 | W-5 | Asset Requests: rows with deadline < 7 days render the deadline cell in `var(--err)` text | HIGH |
-| W-6 | Summary slide's Active section is populated (≥1 row) whenever development happened this week. Delivered section renders only if `delivered[]` is non-empty (empty is common — don't fake it). Never claim Delivered without evidence of full PRD-scope closure for that theme. | MEDIUM |
+| W-6 | Summary slide's `Last week — In progress` section is populated (≥1 row) whenever development happened last week. `Last week — Delivered` section renders only if `delivered[]` is non-empty (empty is common — don't fake it). Never claim Delivered without evidence of full PRD-scope closure for that theme. | MEDIUM |
 | W-7 | Preview `.md` is action-only: opening line + 3 action blocks (Decisions, Assets, Discussion) + sign-off. **Explicitly absent**: Agenda list, Last-week bullets, Blockers, Health, Milestone, asset fallbacks, discussion notes. **ZERO `*` and ZERO `_` in the entire file.** Section headers use emoji-prefix (📌 / 📦 / 💬) — no bold wrapping. Total length under 1000 chars. | HIGH |
 | W-8 | Preview `.md` and Internal agenda `.md` are both rendered in the same `output_language` (no language mixing) | HIGH |
 | W-9 | Commit references (`abc1234`) are styled as `<code>` with monospace font and `var(--bg-soft)` background | LOW |
@@ -675,6 +691,7 @@ Run the full 13-point checklist from [kickoff/SKILL.md §4.8](../kickoff/SKILL.m
 | W-13 | Preview `.md` and slide `.html` contain ZERO ticket IDs (e.g. `FSP-067`) and ZERO commit hashes (e.g. `ce8e804`). These belong only in the Agenda `.md` §Reference section. | HIGH |
 | W-14 | Each `delivered[i]` / `active[i]` summary is ≤ 20 words, names a concrete product-surface deliverable (not "60 commits", not a ticket ID). Themes use PRD vocabulary (Admin dashboard, Worker mobile app, Payment & refund, etc.), not commit-type labels (feat/fix). | HIGH |
 | W-17 | `delivered[]` and `active[]` are populated from Round-1 bullet 5 (PM input). The skill MUST NOT auto-generate them by clustering commits. Commits appear only in Agenda §7 Reference (count, authors, ticket IDs, a handful of key hashes) — never transformed into theme summaries. | HIGH |
+| W-18 | Summary section headings use past-tense framing (`Last week — Delivered` / `Last week — In progress`; ko: `지난주 완료` / `지난주 진행 (계속)`). Plan section uses forward-tense (`This Week Plan` / `이번주 계획`). No artifact labels Summary as "이번주" / "this week" alone — that collides with the Plan section and confuses the time axis. Applies to Agenda `.md`, slide HTML, and any copy-paste into the Preview. | HIGH |
 | W-15 | Every table description/details/recommendation/impact cell in Preview + Slides is ≤ 20 words, uses PRD terminology (grep'd from `prd.md`/`CLAUDE.md`), and contains no banned acronyms from §3.1. | HIGH |
 | W-16 | Summary theme labels are product-surface terms (what the client sees — "Admin dashboard", "Worker mobile app"), not engineering labels ("Admin UI", "Worker Mobile", "Backend"). | MEDIUM |
 
@@ -716,7 +733,7 @@ Workflow:
 | Scenario | Action |
 |----------|--------|
 | No git history in range | Note "No commits this week" in agenda, still generate all 3 artifacts |
-| No prior meeting doc | `progress_review = []`. `delivered[]` and `active[]` still come from PM input in Round-1 bullet 5. Summary renders normally from those arrays. §2 Progress Review skips the committed-vs-actual table and shows only the Delivered + Active sub-tables. |
+| No prior meeting doc | `progress_review = []`. `delivered[]` and `active[]` still come from PM input in Round-1 bullet 5. Summary renders normally from those arrays. §2 Progress Review skips the committed-vs-actual table and shows only the `Last week — Delivered` + `Last week — In progress` sub-tables. |
 | No scope doc | Skip milestone line in Summary |
 | No config AND no `--meeting` AND user skips Round 2 meeting-time prompt | Use "TBD" placeholder in Preview; warn in Step 5 report |
 | User skips all interview rounds | Generate with auto-collected data only; health defaults to `yellow` with note "status not provided" |
@@ -732,7 +749,7 @@ Workflow:
 /weekly --project "Blink" --meeting "2026-04-21 14:00"
 ```
 - No prior meeting detected → `progress_review = []`. PM fills Round-1 bullet 5 with 4–6 themes (each with label + summary + bucket).
-- Summary slide renders Health + Delivered table (1–2 rows) + Active table (3–5 rows). No Status column.
+- Summary slide renders Health + `Last week — Delivered` table (1–2 rows) + `Last week — In progress` table (3–5 rows). No Status column.
 - Preview `.md` skips the last-week enumeration — only Decisions + Assets + Discussion blocks.
 - Start date = 7 days ago
 - Output:
@@ -768,7 +785,7 @@ When the user invokes `/weekly` with a Korean prompt or context, the skill detec
 ## Design Principles
 
 1. **Auto where reliable, manual where not** — scrape the codebase for things that auto-work (prior meeting docs, git log → Reference section, config file). Interview the PM for things the skill historically got wrong (theme labels, bucket assignment, summaries). The git log is evidence; the PM is the author.
-2. **Deliver what you promised** — when prior commitments exist, §2 Progress Review compares them against actual delivery (committed-vs-actual table). The Summary slide's Delivered + Active sub-tables show what moved this week, with the bucket carrying the status signal. The client always sees what they paid for. No silent drift, no blank slides.
+2. **Deliver what you promised** — when prior commitments exist, §2 Progress Review compares them against actual delivery (committed-vs-actual table). The Summary slide's `Last week — Delivered` + `Last week — In progress` sub-tables show what moved last week, with the bucket carrying the status signal. The client always sees what they paid for. No silent drift, no blank slides.
 3. **Three artifacts, one data model** — Preview for D-1 client share, Agenda for PM internal use, Presentation for D-0 client meeting. Same synthesized data, three audiences.
 4. **Consistent branding** — reuse kickoff styling so all Potential Inc client materials look like one family.
 5. **Language follows invocation** — Korean in → Korean out; English in → English out. Never mix languages within a single generation.
