@@ -1,6 +1,6 @@
 ---
 name: mm
-description: "Generate meeting minutes from a transcript — short summary, decisions approved, mismatches, blockers from both sides, and action items. Outputs an internal .md report (for developers and memory) + a Slack-ready summary to share with the client."
+description: "Generate meeting minutes from a transcript — short summary, decisions approved, mismatches, blockers from both sides, and action items. Outputs an internal .md report (for the dev team and project history) + a Slack-ready summary to share with the client."
 user-invocable: true
 argument-hint: "[--project 'name'] [--date 'YYYY-MM-DD'] [--source 'path/to/transcript.txt']"
 ---
@@ -32,11 +32,7 @@ Analyse a meeting transcript and produce two precision artifacts:
 └──────────┬──────────┘
            │
 ┌──────────▼──────────┐
-│ Step 4: Memory      │  Save key decisions + action items to project memory
-└──────────┬──────────┘
-           │
-┌──────────▼──────────┐
-│ Step 5: Report      │
+│ Step 4: Report      │
 └─────────────────────┘
 ```
 
@@ -60,23 +56,17 @@ Extract from `$ARGUMENTS`:
 Read the file at that path. Accept `.txt`, `.md`, `.vtt`, or any plain-text format.
 
 **If no `--source` is provided:**
-Use `AskUserQuestion` with this structured call shape:
+Ask the user in chat (free-form prompt — `AskUserQuestion` is not appropriate here because it expects preset choice options, not pasted text):
 
-```
-question: "Paste the meeting transcript below. Accepts Zoom / Meet / Teams auto-transcripts, dashboard recordings, typed summaries, or Slack thread recaps. Paste everything — completeness improves accuracy."
-options: []   # free-form text input only; no preset choices
-```
+> Paste the meeting transcript below. Accepts Zoom / Meet / Teams auto-transcripts, dashboard recordings, typed summaries, or Slack thread recaps. Paste everything — completeness improves accuracy.
 
 Accept the full pasted block as the transcript. Do not truncate or pre-process it before analysis.
 
 ### 1.3 Collect Attendees (optional fast-follow)
 
-If attendees are not clearly identifiable from the transcript, ask in one follow-up via `AskUserQuestion`:
+If attendees are not clearly identifiable from the transcript, ask in one follow-up in chat:
 
-```
-question: "Who attended? List name and role, one per line. Type 'skip' if already in the transcript or unknown."
-options: []   # free-form text input
-```
+> Who attended? List name and role, one per line. Reply `skip` if already in the transcript or unknown.
 
 Accept "skip" to proceed without a named attendee list.
 
@@ -156,7 +146,7 @@ List every point where the **client's expectation or understanding differed from
 - What the team understood / built
 - Whether it was resolved in the meeting or remains open
 
-Format as a two-column comparison where possible. If no mismatches occurred, write: *No mismatches identified.*
+Format as the 4-column table shown in §3.2 (`Topic | Client understood | Team understood | Status`). If no mismatches occurred, write: *No mismatches identified.*
 
 **Mismatch criteria:** A mismatch is a gap — something the client thought was done, planned differently, or interpreted differently than the team. It is not the same as a blocker or a decision.
 
@@ -297,50 +287,50 @@ Format:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 *{PROJECT}* · Meeting Minutes
+📋 {PROJECT} · Meeting Minutes
 📅 {YYYY-MM-DD}  ·  🏷 {Meeting type}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💬 *Summary*
+💬 Summary
 {1–2 tight sentences — who flagged what, what was resolved, what is next.}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-✅ *Decisions* ({N})
+✅ Decisions ({N})
 1. {decision — full sentence, no emoji prefix}
 2. {decision}
 ...
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-⚠️ *Open Mismatches* ({N})   ← omit section entirely if none
-• *{Topic}* — {client expected X; team built/understood Y}
-• *{Topic}* — {one-line gap. Mark ⚠️ Recurring if seen in prior MM}
+⚠️ Open Mismatches ({N})   ← omit section entirely if none
+• {Topic} — {client expected X; team built/understood Y}
+• {Topic} — {one-line gap. Mark ⚠️ Recurring if seen in prior MM}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🚧 *Blockers* ({N})   ← omit section entirely if none; N = total client + team blockers
+🚧 Blockers ({N})   ← omit section entirely if none; N = total client + team blockers
 Client → {one blocker per line}
 Team → {one blocker per line — repeat "Team →" for each distinct blocker}
 Team → {second team blocker if any}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📌 *Action Items* ({N})
-🔴 [{Owner}] {Task} — *{YYYY-MM-DD}*
-🟡 [{Owner}] {Task} — *{YYYY-MM-DD}*
+📌 Action Items ({N})
+🔴 [{Owner}] {Task} — {YYYY-MM-DD}
+🟡 [{Owner}] {Task} — {YYYY-MM-DD}
 ⚪ [{Owner}] {Task} — TBD
-_(Full list in meeting minutes doc if > 8 items)_
+(Full list in meeting minutes doc if > 8 items)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📅 *Next Meeting Agenda* ({N})
+📅 Next Meeting Agenda ({N})
 • {agenda item derived from open mismatch, pending decision, or upcoming deadline}
 • {agenda item}
 ...
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-_Generated {YYYY-MM-DD} · `/mm --project "{PROJECT}"` · Potential INC_
+Generated {YYYY-MM-DD} · /mm --project "{PROJECT}" · Potential INC
 ```
 
 **Priority dot legend:**
@@ -349,13 +339,13 @@ _Generated {YYYY-MM-DD} · `/mm --project "{PROJECT}"` · Potential INC_
 - ⚪ Low (no deadline mentioned)
 
 **Slack formatting rules:**
-- Use `*bold*` for project name, owner names, and dates
+- **Plain text only** — no `*bold*`, no `_italic_`. Slack's "Format messages with markup" preference is off by default in many workspaces, so markup pastes as literal `*` / `_` characters. Visual hierarchy comes from emoji + `━━━` dividers, not text styling.
 - One blocker per line — repeat `Client →` or `Team →` prefix for each distinct blocker; never combine two blockers on one line with `·`
 - All deadlines in action items use absolute `YYYY-MM-DD` — convert "today / tomorrow / this week" using the meeting date
 - Count badges `({N})` on **every** section header: Decisions, Mismatches, Blockers, Action Items, Next Meeting Agenda
 - **Vertical spacing**: exactly one blank line between header and first item; no blank lines between items within a section; one `━━━` divider line between sections (no blank line above or below the divider — divider acts as the separator)
 - **Sort**: action items by priority desc → deadline asc → owner asc (matches §2.5 sort order)
-- Max 8 action items; truncate Low-priority ones first with `_(Full list in meeting minutes doc)_`
+- Max 8 action items; truncate Low-priority ones first with `(Full list in meeting minutes doc)`
 - Keep the entire block under 50 lines. If over, cut in this order until it fits:
   1. Reduce action items to 5, remove Low-priority ones
   2. Collapse resolved mismatches — show Open / Recurring only
@@ -370,35 +360,7 @@ _Generated {YYYY-MM-DD} · `/mm --project "{PROJECT}"` · Potential INC_
 
 ---
 
-## Step 4: Save to Memory
-
-After generating the `.md` file, save a project memory with the key extractable facts. Write to the canonical path:
-
-```
-~/.claude/projects/{cwd-slug}/memory/project_{ProjectName}_meeting_{YYYY-MM-DD}.md
-```
-
-Where `{cwd-slug}` is the absolute CWD path with path separators replaced by `--` and the drive colon removed (e.g., `D:\claude-operations` → `d--claude-operations`).
-
-Also add a pointer line to `~/.claude/projects/{cwd-slug}/memory/MEMORY.md` (create the index file if it does not exist).
-
-Save as a `project` type memory:
-
-**Content:**
-```
-Meeting: {ProjectName} — {YYYY-MM-DD}
-Key decisions: {comma-separated one-liners of each decision}
-Open action items (team): {count} items, next deadline {earliest deadline}
-Open action items (client): {count} items, next deadline {earliest deadline}
-Unresolved mismatches: {count} — {brief topic list}
-Blockers: {client count} client-side, {team count} team-side
-```
-
-**Why:** Future conversations can reference this memory to know what was agreed, what is blocked, and what the team owes the client — without re-reading the transcript.
-
----
-
-## Step 5: Report Result
+## Step 4: Report Result
 
 After all artifacts are generated, print:
 
@@ -413,8 +375,6 @@ Report:     .claude-project/meetings/{ProjectName}/minutes/[MM] {ProjectName} ({
 
 Summary:    {decisions count} decisions  ·  {mismatches count} mismatches  ·  {total action items} action items
             {client blockers count} client blockers  ·  {team blockers count} team blockers
-
-Memory:     Saved to project memory
 
 Slack summary printed above — copy and paste directly into Slack.
 ```
@@ -431,7 +391,6 @@ Slack summary printed above — copy and paste directly into Slack.
 | No action items found | Write "No action items recorded" in the table section — do not fabricate tasks |
 | No decisions found | Write "No formal decisions recorded" — do not infer decisions from discussion |
 | Output directory creation fails | Fall back to `.claude-project/meetings/minutes/` |
-| Memory system unavailable | Skip Step 4, note "Memory not saved" in the Step 5 report |
 
 ---
 
@@ -445,7 +404,7 @@ Before outputting either artifact, verify:
 | 2 | Every decision is explicitly stated as agreed — not merely discussed | HIGH |
 | 3 | Mismatches table separates "client view" from "team view" in distinct columns | HIGH |
 | 4 | Blockers are split into Client Side and Team Side — never mixed | HIGH |
-| 5 | Slack summary is ≤40 lines and uses Slack markdown only (`*bold*`, `_italic_`, bullets) | MEDIUM |
+| 5 | Slack summary is ≤50 lines and uses plain text only — no `*bold*` / `_italic_` markup (relies on emoji + `━━━` dividers for visual hierarchy) | MEDIUM |
 | 6 | Summary prose is 3–5 sentences — not bullet points, not longer | MEDIUM |
 | 7 | No invented data — every item traceable to the transcript | HIGH |
 | 8 | Action items table includes Priority column populated for all rows using the deterministic deadline rule | MEDIUM |
@@ -469,7 +428,7 @@ Before outputting either artifact, verify:
 ```bash
 /mm --project "Artlive" --source ".claude-project/meetings/transcript-2026-04-24.txt"
 ```
-→ Reads the file → Analyses → Writes `.md` → Prints Slack summary → Saves memory
+→ Reads the file → Analyses → Writes `.md` → Prints Slack summary
 
 ### Example 3: Override date
 
