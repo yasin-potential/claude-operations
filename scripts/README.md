@@ -11,6 +11,9 @@ All scripts that need credentials follow the cross-module [**Credentials with 1P
 | Dir | Purpose | Skill |
 |-----|---------|-------|
 | [bolta/](bolta/) | Issue and amend Korean electronic tax invoices (세금계산서) via Bolta API | [`tax-invoice`](../skills/client/billing/tax-invoice/SKILL.md) |
+| [netlify-publish/](netlify-publish/) | Bundle + deploy any generated HTML deck to Netlify (proposals, kickoff, weekly, closing, overview) | shared utility — no single owner skill |
+
+> Scripts that don't need external API credentials (e.g. `netlify-publish/`, where `netlify-cli` handles auth via browser login) skip the `.env.1password.*` / `check-env.mjs` requirements below. Use [`netlify-publish/`](netlify-publish/) as the reference for that case.
 
 ## Adding a new script directory
 

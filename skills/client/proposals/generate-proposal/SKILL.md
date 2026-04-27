@@ -172,7 +172,7 @@ Two paths; pick whichever fits your workflow.
 Both paths need the bundle folder. It's what gets uploaded.
 
 ```bash
-python3 scripts/bundle-for-netlify.py ".claude-project/proposals/[Proposal] [PROJECT_NAME].html"
+python3 .claude/operation/scripts/netlify-publish/bundle-for-netlify.py ".claude-project/proposals/[Proposal] [PROJECT_NAME].html"
 ```
 
 Produces a sibling folder `.claude-project/proposals/[Proposal] [PROJECT_NAME]-bundle/` with:
@@ -190,15 +190,15 @@ npm i -g netlify-cli
 netlify login   # opens browser, authorize once
 ```
 
-Then deploy in one command. `scripts/publish.sh` runs the bundler first, then `netlify deploy`:
+Then deploy in one command. The shared [`netlify-publish`](../../../../scripts/netlify-publish/) utility runs the bundler first, then `netlify deploy`:
 
 ```bash
-bash scripts/publish.sh ".claude-project/proposals/[Proposal] [PROJECT_NAME].html"
+bash .claude/operation/scripts/netlify-publish/publish.sh ".claude-project/proposals/[Proposal] [PROJECT_NAME].html"
 # production (stable URL):
 # → https://<site-name>.netlify.app
 
 # or a draft preview URL:
-bash scripts/publish.sh ".claude-project/proposals/[Proposal] [PROJECT_NAME].html" --draft
+bash .claude/operation/scripts/netlify-publish/publish.sh ".claude-project/proposals/[Proposal] [PROJECT_NAME].html" --draft
 ```
 
 First run per bundle folder is interactive — netlify-cli asks whether to create a new site or link to an existing one. Pick "Create & configure a new site" for a fresh deck; pick "Link this directory to an existing site" to redeploy updates to the same URL.

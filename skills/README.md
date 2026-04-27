@@ -6,7 +6,7 @@ All reusable Claude Code skills, organized by purpose.
 
 | Bucket | Description | Skill Count |
 |--------|-------------|-------------|
-| [client/](client/) | Everything the client sees — PRD, meetings, billing, reports, proposals | 13 |
+| [client/](client/) | Everything the client sees — PRD, meetings, billing, reports, proposals | 14 |
 | [internal/](internal/) | Team-only tools — SOP, knowledge base, tickets, training data, Korea HWP | 5 |
 | [app-release/](app-release/) | App store release pipeline (`/store-ship` orchestrator) | 7 |
 | [automation/](automation/) | Browser and workflow automation — signup, KYC, portal flows | 1 |

@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[Overview] {{PROJECT_NAME}}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================================
+           Potential INC — generate-project-overview
+           Tokens inlined from resources/brand/tokens.css
+           Do not edit tokens here — update tokens.css and re-sync.
+           ============================================================ */
+
+        :root {
+            --brand-purple: #5C4EFF; --brand-lime: #DDFE52;
+            --brand-navy: #050042;   --brand-dark: #050505;
+            --phase-discovery: #8B7AFF; --phase-design: #5C4EFF;
+            --phase-dev: #4834CC; --phase-qa: #A594FF; --phase-launch: #C4BAFF;
+            --ok: #10B981; --warn: #F59E0B; --err: #EF4444;
+            --font-sans: 'Plus Jakarta Sans', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            --w-body: 400; --w-medium: 500; --w-bold: 700; --w-heading: 800; --w-black: 900;
+            --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-14: 56px; --s-16: 64px;
+            --r-sm: 6px; --r-md: 12px; --r-lg: 16px; --r-xl: 24px;
+            --ease-slide: cubic-bezier(0.4, 0, 0.2, 1);
+            --dur-slide: 500ms; --dur-theme: 200ms;
+        }
+        [data-theme="light"] {
+            --bg: #ffffff; --bg-soft: #f8f7ff; --surface: #ffffff;
+            --border: rgba(92, 78, 255, 0.12);
+            --heading: #050042; --body: #333333; --muted: #6b7280;
+            --accent: var(--brand-purple); --accent-glow: rgba(92, 78, 255, 0.15);
+            --on-accent: #ffffff;
+            --nav-bg: rgba(5, 0, 66, 0.95); --nav-dot-idle: rgba(255, 255, 255, 0.55);
+        }
+        [data-theme="dark"] {
+            --bg: #050505; --bg-soft: #0A0A0A;
+            --surface: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --heading: #ffffff; --body: rgba(255, 255, 255, 0.82); --muted: rgba(255, 255, 255, 0.58);
+            --accent: var(--brand-lime); --accent-glow: rgba(221, 254, 82, 0.18);
+            --on-accent: #050505;
+            --nav-bg: rgba(255, 255, 255, 0.06); --nav-dot-idle: rgba(255, 255, 255, 0.55);
+        }
+
+        /* Reset */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { color-scheme: light dark; }
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg); color: var(--body);
+            overflow: hidden;
+            width: 100vw; height: 100vh;
+            transition: background var(--dur-theme) ease, color var(--dur-theme) ease;
+            /* Korean-friendly line wrapping — keeps Korean compounds intact, falls back to char break for super-long tokens */
+            word-break: keep-all;
+            overflow-wrap: anywhere;
+        }
+
+        /* Slide container */
+        .slides-container { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+        .slide {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 60px 80px;
+            opacity: 0; transform: translateX(100%);
+            transition: opacity var(--dur-slide) var(--ease-slide),
+                        transform var(--dur-slide) var(--ease-slide),
+                        background var(--dur-theme) ease;
+            background: var(--bg); color: var(--body);
+        }
+        .slide.active { opacity: 1; transform: translateX(0); }
+        .slide.prev   { opacity: 0; transform: translateX(-100%); }
+
+        /* Cover + Thank-you */
+        .slide-cover, .slide-thankyou {
+            background: var(--bg); color: var(--heading);
+            text-align: center; overflow: hidden;
+        }
+        .slide-cover::before, .slide-thankyou::before {
+            content: ''; position: absolute;
+            top: -20%; right: -10%; width: 60vw; height: 60vw;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            filter: blur(60px); pointer-events: none; z-index: 0;
+        }
+        .slide-cover::after, .slide-thankyou::after {
+            content: ''; position: absolute;
+            bottom: -30%; left: -20%; width: 70vw; height: 70vw;
+            background: radial-gradient(circle, rgba(92, 78, 255, 0.18) 0%, transparent 70%);
+            filter: blur(80px); pointer-events: none; z-index: 0;
+        }
+        [data-theme="dark"] .slide-cover::after,
+        [data-theme="dark"] .slide-thankyou::after {
+            background: radial-gradient(circle, rgba(92, 78, 255, 0.28) 0%, transparent 70%);
+        }
+        .slide-cover > *, .slide-thankyou > * { position: relative; z-index: 1; }
+
+        .cover-mark {
+            width: 128px; height: auto;
+            margin-bottom: 40px;
+            color: var(--accent);
+            display: inline-block;
+        }
+        .cover-mark svg { width: 100%; height: auto; display: block; }
+        .cover-mark svg path { fill: currentColor; }
+
+        .slide-cover .project-label {
+            font-size: 13px; font-weight: var(--w-bold);
+            letter-spacing: 8px; text-transform: uppercase;
+            color: var(--accent); margin-bottom: 36px;
+        }
+        .slide-cover .project-name {
+            font-size: 92px; font-weight: var(--w-black);
+            color: var(--heading);
+            letter-spacing: -1px; margin-bottom: 28px; line-height: 1.05;
+            max-width: 18ch;
+        }
+        .slide-cover .project-meta {
+            display: flex; gap: var(--s-6); align-items: center;
+            font-size: 16px; color: var(--muted);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            letter-spacing: 2px;
+        }
+        .slide-cover .project-meta .dot { color: var(--accent); }
+        .slide-cover .copyright,
+        .slide-thankyou .copyright {
+            position: absolute; bottom: 56px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px; color: var(--muted); letter-spacing: 1px; z-index: 1;
+        }
+
+        /* Section title (content slides) */
+        .slide h1.slide-title {
+            font-size: 44px; font-weight: var(--w-bold);
+            color: var(--heading);
+            margin-bottom: 40px; align-self: flex-start;
+            line-height: 1.2; max-width: 24ch;
+        }
+        .slide .section-number {
+            font-size: 96px; font-weight: var(--w-black);
+            color: var(--accent); opacity: 0.15;
+            position: absolute; top: 40px; left: 80px;
+            pointer-events: none;
+        }
+
+        /* Thank-you */
+        .slide-thankyou .thankyou-title {
+            font-size: 88px; font-weight: var(--w-black);
+            color: var(--heading);
+            margin-bottom: 24px; letter-spacing: 8px;
+        }
+        .slide-thankyou .contact-email {
+            font-size: 22px; color: var(--accent);
+            font-weight: var(--w-medium); margin-bottom: 16px;
+        }
+
+        /* ============================================================
+           Slide-specific layouts
+           ============================================================ */
+
+        /* Content alignment */
+        .slide-content {
+            width: 100%; max-width: 1280px;
+            align-self: flex-start;
+            color: var(--body);
+        }
+
+        /* One-Liner — large display quote, sized so a 60-char Korean line breaks across 2~3 lines comfortably */
+        .one-liner {
+            font-size: 44px; font-weight: var(--w-bold);
+            color: var(--heading); line-height: 1.35;
+            max-width: 18ch; margin: 0 auto;
+            text-align: center;
+            position: relative;
+        }
+        .one-liner::before {
+            content: '"'; color: var(--accent); opacity: 0.4;
+            font-size: 96px; font-weight: var(--w-black);
+            position: absolute; top: -32px; left: -48px;
+        }
+        .one-liner-meta {
+            margin-top: var(--s-10);
+            text-align: center;
+            font-size: 14px; color: var(--muted);
+            letter-spacing: 4px; text-transform: uppercase;
+            font-weight: var(--w-medium);
+        }
+
+        /* Term table */
+        .term-table {
+            width: 100%; border-collapse: collapse;
+            font-size: 17px;
+        }
+        .term-table th, .term-table td {
+            padding: var(--s-4) var(--s-6);
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+        .term-table thead th {
+            font-size: 12px; font-weight: var(--w-bold);
+            color: var(--muted); letter-spacing: 2px; text-transform: uppercase;
+            border-bottom: 2px solid var(--border);
+        }
+        .term-table tbody td.term {
+            color: var(--heading); font-weight: var(--w-bold);
+            white-space: nowrap; width: 28%;
+        }
+        .term-table tbody td.def { color: var(--body); line-height: 1.6; }
+
+        /* User type cards */
+        .user-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--s-4);
+            width: 100%;
+        }
+        .user-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+            padding: var(--s-6);
+        }
+        .user-card .role {
+            font-size: 20px; font-weight: var(--w-bold);
+            color: var(--heading); margin-bottom: var(--s-2);
+        }
+        .user-card .role-desc {
+            font-size: 15px; color: var(--body);
+            line-height: 1.55; margin-bottom: var(--s-4);
+        }
+        .user-card .role-goal {
+            font-size: 13px; color: var(--accent);
+            font-weight: var(--w-medium); letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .user-card .role-goal::before {
+            content: '→ '; opacity: 0.7;
+        }
+
+        /* Deliverables */
+        .deliverables {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: var(--s-4);
+            width: 100%;
+        }
+        .deliverable-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            border-radius: var(--r-md);
+            padding: var(--s-6);
+        }
+        .deliverable-card .name {
+            font-size: 22px; font-weight: var(--w-bold);
+            color: var(--heading);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            margin-bottom: var(--s-2);
+        }
+        .deliverable-card .scope {
+            font-size: 15px; color: var(--body); line-height: 1.55;
+        }
+
+        /* Feature list */
+        .feature-list {
+            list-style: none; padding: 0; margin: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: var(--s-3);
+            width: 100%;
+        }
+        .feature-list li {
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: var(--r-sm);
+            padding: var(--s-3) var(--s-4);
+            font-size: 15px; color: var(--body);
+            line-height: 1.45;
+            position: relative;
+            padding-left: var(--s-8);
+        }
+        .feature-list li::before {
+            content: '';
+            position: absolute;
+            left: var(--s-3); top: 0.65em;
+            width: 6px; height: 6px;
+            background: var(--accent); border-radius: 50%;
+        }
+        [data-theme="dark"] .feature-list li {
+            background: var(--surface);
+        }
+
+        /* Timeline */
+        .timeline-table {
+            width: 100%; border-collapse: collapse; font-size: 16px;
+        }
+        .timeline-table th, .timeline-table td {
+            padding: var(--s-4) var(--s-6);
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .timeline-table thead th {
+            font-size: 12px; font-weight: var(--w-bold);
+            color: var(--muted); letter-spacing: 2px; text-transform: uppercase;
+            border-bottom: 2px solid var(--border);
+        }
+        .timeline-table .phase-cell {
+            display: flex; align-items: center; gap: var(--s-3);
+            font-weight: var(--w-bold); color: var(--heading);
+        }
+        .phase-bar {
+            width: 8px; height: 32px; border-radius: var(--r-sm);
+            flex-shrink: 0;
+        }
+        .phase-discovery { background: var(--phase-discovery); }
+        .phase-design   { background: var(--phase-design); }
+        .phase-dev      { background: var(--phase-dev); }
+        .phase-qa       { background: var(--phase-qa); }
+        .phase-launch   { background: var(--phase-launch); }
+        .timeline-table td.duration {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            color: var(--accent); font-weight: var(--w-bold);
+            white-space: nowrap;
+        }
+        .timeline-table td.scope { color: var(--body); }
+
+        /* Need to discuss */
+        .discuss-list {
+            list-style: none; padding: 0; margin: 0;
+            display: flex; flex-direction: column; gap: var(--s-3);
+            width: 100%;
+        }
+        .discuss-list li {
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+            padding: var(--s-4) var(--s-6);
+            font-size: 16px; color: var(--body);
+            line-height: 1.55;
+            position: relative;
+            padding-left: var(--s-14);
+        }
+        .discuss-list li::before {
+            content: '?';
+            position: absolute;
+            left: var(--s-4); top: var(--s-3);
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: var(--accent); color: var(--on-accent);
+            font-weight: var(--w-bold); font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        [data-theme="dark"] .discuss-list li {
+            background: var(--surface);
+        }
+
+        /* Navigation */
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 48px;
+            background: var(--nav-bg);
+            display: flex; align-items: center; justify-content: center;
+            gap: 12px; z-index: 100;
+            backdrop-filter: blur(10px);
+            transition: background var(--dur-theme) ease;
+        }
+        .nav-dot {
+            position: relative;
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--nav-dot-idle);
+            cursor: pointer;
+            transition: background 0.3s, width 0.3s;
+            border: none; padding: 0;
+        }
+        .nav-dot::before { content: ''; position: absolute; inset: -17px; }
+        .nav-dot.active  { background: var(--accent); width: 28px; border-radius: 5px; }
+        .nav-dot:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+        .slide-counter {
+            position: fixed; bottom: 56px; right: 24px;
+            font-size: 13px; color: var(--muted);
+            font-weight: var(--w-medium); z-index: 100;
+        }
+
+        /* Chrome buttons */
+        .chrome-btn {
+            position: fixed; top: 16px;
+            width: 36px; height: 36px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r-sm);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100; color: var(--heading);
+            transition: background var(--dur-theme) ease, transform var(--dur-theme) ease;
+        }
+        .chrome-btn:hover { transform: translateY(-1px); }
+        .chrome-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        .chrome-btn svg { width: 18px; height: 18px; }
+        .theme-toggle   { right: 64px; }
+        .fullscreen-btn { right: 16px; font-size: 16px; }
+        .theme-toggle .ico-moon { display: none; }
+        [data-theme="dark"] .theme-toggle .ico-sun  { display: none; }
+        [data-theme="dark"] .theme-toggle .ico-moon { display: block; }
+
+        /* Top-left wordmark (content slides only) */
+        .slide-logo { position: absolute; top: 24px; left: 40px; }
+        .slide-logo svg { width: 132px; height: auto; }
+        .slide-logo svg .mk { fill: var(--accent); }
+        .slide-logo svg .wm { fill: var(--heading); }
+
+        /* Focus safety net */
+        :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .slide { transform: none !important; }
+            .slide:not(.active) { opacity: 0 !important; visibility: hidden; }
+            .slide.active { opacity: 1 !important; visibility: visible; }
+        }
+
+        /* Print — force light, one page per slide */
+        @media print {
+            body { overflow: visible; background: #ffffff; color: #000; }
+            :root, [data-theme="dark"] {
+                --bg: #ffffff; --bg-soft: #f8f7ff; --surface: #ffffff;
+                --heading: #050042; --body: #333333; --muted: #6b7280;
+                --accent: var(--brand-purple); --on-accent: #ffffff;
+            }
+            .slides-container { height: auto; overflow: visible; }
+            .slide {
+                position: relative; transform: none; opacity: 1;
+                page-break-after: always; height: 100vh;
+            }
+            .slide.prev { transform: none; opacity: 1; }
+            .nav-bar, .slide-counter, .chrome-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Chrome: theme toggle + fullscreen -->
+<button class="chrome-btn theme-toggle" type="button" aria-label="Toggle light/dark theme" aria-pressed="false" title="Toggle theme (T)">
+    <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
+<button class="chrome-btn fullscreen-btn" type="button" aria-label="Toggle fullscreen" title="Fullscreen (F)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+</button>
+
+<div class="slides-container">
+
+    <!-- Slide 1 — COVER -->
+    <section class="slide slide-cover active" data-slide="0" aria-labelledby="slide-cover-title">
+        <div class="cover-mark" aria-hidden="true">
+            <svg viewBox="0 0 49 39" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Potential">
+                <path d="M26.1264 30.228H12.4889C11.4431 30.228 10.4587 30.6176 9.72044 31.3559C8.98217 32.1147 8.57202 33.099 8.59253 34.1449C8.59253 36.2777 10.3972 38.0208 12.571 38.0208H22.3735C23.604 38.0208 24.7114 37.18 25.06 35.9906L26.5571 30.8022C26.5981 30.6586 26.5776 30.5151 26.4955 30.392C26.4135 30.2895 26.27 30.228 26.1264 30.228Z"/>
+                <path d="M44.4597 22.7223H31.4579C30.4121 22.7223 29.4277 23.1119 28.6894 23.8502C27.9512 24.609 27.541 25.5933 27.541 26.6392C27.5615 28.772 29.3662 30.5151 31.54 30.5151H40.7068C41.9372 30.5151 43.0446 29.6743 43.3933 28.5054L44.8903 23.2965C44.9313 23.153 44.9108 23.0094 44.8083 22.9069C44.7263 22.7838 44.6032 22.7223 44.4597 22.7223Z"/>
+                <path d="M46.0597 2.87104C44.2346 1.02537 41.8147 0 39.2308 0H30.146C29.0796 0 28.1157 0.717761 27.8286 1.74313L26.6802 5.72158C26.3726 6.76746 25.3882 7.50573 24.3013 7.50573H13.5554C11.3611 7.50573 9.55647 9.24886 9.53596 11.3816C9.53596 12.4275 9.94611 13.4119 10.6844 14.1501C11.4226 14.8884 12.407 15.2986 13.4529 15.2986H22.9273C24.1783 15.2986 25.2652 14.4578 25.6138 13.2683L26.7212 9.45394C27.0083 8.49009 27.9106 7.81335 28.9155 7.81335H37.6722C38.1644 7.81335 38.6565 8.01841 39.0052 8.36704C39.3538 8.71566 39.5179 9.14632 39.5179 9.59748C39.5179 10.0692 39.3333 10.4998 39.0052 10.8279C38.677 11.1766 38.2259 11.3611 37.7542 11.3611H29.7563C28.6899 11.3611 27.7261 12.0789 27.439 13.1043L26.2905 17.0622C25.9829 18.1081 25.0191 18.8464 23.9117 18.8464H3.89642C1.76364 18.8464 0 20.5895 0 22.7428C0 24.896 1.76364 26.6392 3.89642 26.6392H22.5377C23.7886 26.6392 24.896 25.8189 25.2242 24.6295L26.3316 20.7946C26.6187 19.8307 27.5005 19.1745 28.5054 19.1745H39.0667C44.3576 19.1745 48.7052 14.9499 48.8077 9.74104C48.8487 7.1571 47.8644 4.71671 46.0597 2.87104Z"/>
+            </svg>
+        </div>
+        <div class="project-label">Project Overview</div>
+        <h1 id="slide-cover-title" class="project-name">{{PROJECT_NAME}}</h1>
+        <div class="project-meta">
+            <span>{{CLIENT_NAME}}</span>
+            <span class="dot">•</span>
+            <span>{{TODAY}}</span>
+        </div>
+        <div class="copyright">Copyright 2026. Potential INC. All rights reserved</div>
+    </section>
+
+    <!-- Slide 2 — ONE LINER -->
+    <section class="slide" data-slide="1" aria-labelledby="slide-oneliner-title">
+        <div class="slide-logo" aria-hidden="true">
+            <svg width="132" height="28" viewBox="0 0 132 28" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Potential">
+                <g transform="translate(0, 0) scale(0.55)">
+                    <path d="M26.1264 30.228H12.4889C11.4431 30.228 10.4587 30.6176 9.72044 31.3559C8.98217 32.1147 8.57202 33.099 8.59253 34.1449C8.59253 36.2777 10.3972 38.0208 12.571 38.0208H22.3735C23.604 38.0208 24.7114 37.18 25.06 35.9906L26.5571 30.8022C26.5981 30.6586 26.5776 30.5151 26.4955 30.392C26.4135 30.2895 26.27 30.228 26.1264 30.228Z" class="mk"/>
+                    <path d="M44.4597 22.7223H31.4579C30.4121 22.7223 29.4277 23.1119 28.6894 23.8502C27.9512 24.609 27.541 25.5933 27.541 26.6392C27.5615 28.772 29.3662 30.5151 31.54 30.5151H40.7068C41.9372 30.5151 43.0446 29.6743 43.3933 28.5054L44.8903 23.2965C44.9313 23.153 44.9108 23.0094 44.8083 22.9069C44.7263 22.7838 44.6032 22.7223 44.4597 22.7223Z" class="mk"/>
+                    <path d="M46.0597 2.87104C44.2346 1.02537 41.8147 0 39.2308 0H30.146C29.0796 0 28.1157 0.717761 27.8286 1.74313L26.6802 5.72158C26.3726 6.76746 25.3882 7.50573 24.3013 7.50573H13.5554C11.3611 7.50573 9.55647 9.24886 9.53596 11.3816C9.53596 12.4275 9.94611 13.4119 10.6844 14.1501C11.4226 14.8884 12.407 15.2986 13.4529 15.2986H22.9273C24.1783 15.2986 25.2652 14.4578 25.6138 13.2683L26.7212 9.45394C27.0083 8.49009 27.9106 7.81335 28.9155 7.81335H37.6722C38.1644 7.81335 38.6565 8.01841 39.0052 8.36704C39.3538 8.71566 39.5179 9.14632 39.5179 9.59748C39.5179 10.0692 39.3333 10.4998 39.0052 10.8279C38.677 11.1766 38.2259 11.3611 37.7542 11.3611H29.7563C28.6899 11.3611 27.7261 12.0789 27.439 13.1043L26.2905 17.0622C25.9829 18.1081 25.0191 18.8464 23.9117 18.8464H3.89642C1.76364 18.8464 0 20.5895 0 22.7428C0 24.896 1.76364 26.6392 3.89642 26.6392H22.5377C23.7886 26.6392 24.896 25.8189 25.2242 24.6295L26.3316 20.7946C26.6187 19.8307 27.5005 19.1745 28.5054 19.1745H39.0667C44.3576 19.1745 48.7052 14.9499 48.8077 9.74104C48.8487 7.1571 47.8644 4.71671 46.0597 2.87104Z" class="mk"/>
+                </g>
+                <text x="36" y="20" font-family="Plus Jakarta Sans, sans-serif" font-size="18" font-weight="800" class="wm">Potential</text>
+            </svg>
+        </div>
+        <div class="section-number" aria-hidden="true">01</div>
+        <h1 id="slide-oneliner-title" class="slide-title" style="visibility:hidden;height:0;margin:0;">One Liner</h1>
+        <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1;width:100%;">
+            <p class="one-liner">{{ONE_LINER}}</p>
+            <div class="one-liner-meta">One Liner</div>
+        </div>
+    </section>
+
+    <!-- Slide 3 — TERMINOLOGY -->
+    <section class="slide" data-slide="2" aria-labelledby="slide-terminology-title">
+        <div class="slide-logo" aria-hidden="true">
+            <svg width="132" height="28" viewBox="0 0 132 28" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Potential">
+                <g transform="translate(0, 0) scale(0.55)">
+                    <path d="M26.1264 30.228H12.4889C11.4431 30.228 10.4587 30.6176 9.72044 31.3559C8.98217 32.1147 8.57202 33.099 8.59253 34.1449C8.59253 36.2777 10.3972 38.0208 12.571 38.0208H22.3735C23.604 38.0208 24.7114 37.18 25.06 35.9906L26.5571 30.8022C26.5981 30.6586 26.5776 30.5151 26.4955 30.392C26.4135 30.2895 26.27 30.228 26.1264 30.228Z" class="mk"/>
+                    <path d="M44.4597 22.7223H31.4579C30.4121 22.7223 29.4277 23.1119 28.6894 23.8502C27.9512 24.609 27.541 25.5933 27.541 26.6392C27.5615 28.772 29.3662 30.5151 31.54 30.5151H40.7068C41.9372 30.5151 43.0446 29.6743 43.3933 28.5054L44.8903 23.2965C44.9313 23.153 44.9108 23.0094 44.8083 22.9069C44.7263 22.7838 44.6032 22.7223 44.4597 22.7223Z" class="mk"/>
+                    <path d="M46.0597 2.87104C44.2346 1.02537 41.8147 0 39.2308 0H30.146C29.0796 0 28.1157 0.717761 27.8286 1.74313L26.6802 5.72158C26.3726 6.76746 25.3882 7.50573 24.3013 7.50573H13.5554C11.3611 7.50573 9.55647 9.24886 9.53596 11.3816C9.53596 12.4275 9.94611 13.4119 10.6844 14.1501C11.4226 14.8884 12.407 15.2986 13.4529 15.2986H22.9273C24.1783 15.2986 25.2652 14.4578 25.6138 13.2683L26.7212 9.45394C27.0083 8.49009 27.9106 7.81335 28.9155 7.81335H37.6722C38.1644 7.81335 38.6565 8.01841 39.0052 8.36704C39.3538 8.71566 39.5179 9.14632 39.5179 9.59748C39.5179 10.0692 39.3333 10.4998 39.0052 10.8279C38.677 11.1766 38.2259 11.3611 37.7542 11.3611H29.7563C28.6899 11.3611 27.7261 12.0789 27.439 13.1043L26.2905 17.0622C25.9829 18.1081 25.0191 18.8464 23.9117 18.8464H3.89642C1.76364 18.8464 0 20.5895 0 22.7428C0 24.896 1.76364 26.6392 3.89642 26.6392H22.5377C23.7886 26.6392 24.896 25.8189 25.2242 24.6295L26.3316 20.7946C26.6187 19.8307 27.5005 19.1745 28.5054 19.1745H39.0667C44.3576 19.1745 48.7052 14.9499 48.8077 9.74104C48.8487 7.1571 47.8644 4.71671 46.0597 2.87104Z" class="mk"/>
+                </g>
+                <text x="36" y="20" font-family="Plus Jakarta Sans, sans-serif" font-size="18" font-weight="800" class="wm">Potential</text>
+            </svg>
+        </div>
+        <div class="section-number" aria-hidden="true">02</div>
+        <h1 id="slide-terminology-title" class="slide-title">Terminology</h1>
+        <div class="slide-content">
+            <table class="term-table">
+                <thead>
+                    <tr><th>Term</th><th>Definition</th></tr>
+                </thead>
+                <tbody>
+                    {{TERMINOLOGY_ROWS}}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Slide 4 — USER TYPES -->
+    <section class="slide" data-slide="3" aria-labelledby="slide-usertypes-title">
+        <div class="slide-logo" aria-hidden="true">
+            <svg width="132" height="28" viewBox="0 0 132 28" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Potential">
+                <g transform="translate(0, 0) scale(0.55)">
+                    <path d="M26.1264 30.228H12.4889C11.4431 30.228 10.4587 30.6176 9.72044 31.3559C8.98217 32.1147 8.57202 33.099 8.59253 34.1449C8.59253 36.2777 10.3972 38.0208 12.571 38.0208H22.3735C23.604 38.0208 24.7114 37.18 25.06 35.9906L26.5571 30.8022C26.5981 30.6586 26.5776 30.5151 26.4955 30.392C26.4135 30.2895 26.27 30.228 26.1264 30.228Z" class="mk"/>
+                    <path d="M44.4597 22.7223H31.4579C30.4121 22.7223 29.4277 23.1119 28.6894 23.8502C27.9512 24.609 27.541 25.5933 27.541 26.6392C27.5615 28.772 29.3662 30.5151 31.54 30.5151H40.7068C41.9372 30.5151 43.0446 29.6743 43.3933 28.5054L44.8903 23.2965C44.9313 23.153 44.9108 23.0094 44.8083 22.9069C44.7263 22.7838 44.6032 22.7223 44.4597 22.7223Z" class="mk"/>
+                    <path d="M46.0597 2.87104C44.2346 1.02537 41.8147 0 39.2308 0H30.146C29.0796 0 28.1157 0.717761 27.8286 1.74313L26.6802 5.72158C26.3726 6.76746 25.3882 7.50573 24.3013 7.50573H13.5554C11.3611 7.50573 9.55647 9.24886 9.53596 11.3816C9.53596 12.4275 9.94611 13.4119 10.6844 14.1501C11.4226 14.8884 12.407 15.2986 13.4529 15.2986H22.9273C24.1783 15.2986 25.2652 14.4578 25.6138 13.2683L26.7212 9.45394C27.0083 8.49009 27.9106 7.81335 28.9155 7.81335H37.6722C38.1644 7.81335 38.6565 8.01841 39.0052 8.36704C39.3538 8.71566 39.5179 9.14632 39.5179 9.59748C39.5179 10.0692 39.3333 10.4998 39.0052 10.8279C38.677 11.1766 38.2259 11.3611 37.7542 11.3611H29.7563C28.6899 11.3611 27.7261 12.0789 27.439 13.1043L26.2905 17.0622C25.9829 18.1081 25.0191 18.8464 23.9117 18.8464H3.89642C1.76364 18.8464 0 20.5895 0 22.7428C0 24.896 1.76364 26.6392 3.89642 26.6392H22.5377C23.7886 26.6392 24.896 25.8189 25.2242 24.6295L26.3316 20.7946C26.6187 19.8307 27.5005 19.1745 28.5054 19.1745H39.0667C44.3576 19.1745 48.7052 14.9499 48.8077 9.74104C48.8487 7.1571 47.8644 4.71671 46.0597 2.87104Z" class="mk"/>
+                </g>
+                <text x="36" y="20" font-family="Plus Jakarta Sans, sans-serif" font-size="18" font-weight="800" class="wm">Potential</text>
+            </svg>
+        </div>
+        <div class="section-number" aria-hidden="true">03</div>
+        <h1 id="slide-usertypes-title" class="slide-title">User Types</h1>
+        <div class="slide-content">
+            <div class="user-grid">
+                {{USER_TYPE_ROWS}}
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 5 — DELIVERABLES -->
+    <section class="slide" data-slide="4" aria-labelledby="slide-deliverables-title">
+        <div class="slide-logo" aria-hidden="true">
+            <svg width="132" height="28" viewBox="0 0 132 28" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Potential">
+                <g transform="translate(0, 0) scale(0.55)">
+                    <path d="M26.1264 30.228H12.4889C11.4431 30.228 10.4587 30.6176 9.72044 31.3559C8.98217 32.1147 8.57202 33.099 8.59253 34.1449C8.59253 36.2777 10.3972 38.0208 12.571 38.0208H22.3735C23.604 38.0208 24.7114 37.18 25.06 35.9906L26.5571 30.8022C26.5981 30.6586 26.5776 30.5151 26.4955 30.392C26.4135 30.2895 26.27 30.228 26.1264 30.228Z" class="mk"/>
+                    <path d="M44.4597 22.7223H31.4579C30.4121 22.7223 29.4277 23.1119 28.6894 23.8502C27.9512 24.609 27.541 25.5933 27.541 26.6392C27.5615 28.772 29.3662 30.5151 31.54 30.5151H40.7068C41.9372 30.5151 43.0446 29.6743 43.3933 28.5054L44.8903 23.2965C44.9313 23.153 44.9108 23.0094 44.8083 22.9069C44.7263 22.7838 44.6032 22.7223 44.4597 22.7223Z" class="mk"/>
+                    <path d="M46.0597 2.87104C44.2346 1.02537 41.8147 0 39.2308 0H30.146C29.0796 0 28.1157 0.717761 27.8286 1.74313L26.6802 5.72158C26.3726 6.76746 25.3882 7.50573 24.3013 7.50573H13.5554C11.3611 7.50573 9.55647 9.24886 9.53596 11.3816C9.53596 12.4275 9.94611 13.4119 10.6844 14.1501C11.4226 14.8884 12.407 15.2986 13.4529 15.2986H22.9273C24.1783 15.2986 25.2652 14.4578 25.6138 13.2683L26.7212 9.45394C27.0083 8.49009 27.9106 7.81335 28.9155 7.81335H37.6722C38.1644 7.81335 38.6565 8.01841 39.0052 8.36704C39.3538 8.71566 39.5179 9.14632 39.5179 9.59748C39.5179 10.0692 39.3333 10.4998 39.0052 10.8279C38.677 11.1766 38.2259 11.3611 37.7542 11.3611H29.7563C28.6899 11.3611 27.7261 12.0789 27.439 13.1043L26.2905 17.0622C25.9829 18.1081 25.0191 18.8464 23.9117 18.8464H3.89642C1.76364 18.8464 0 20.5895 0 22.7428C0 24.896 1.76364 26.6392 3.89642 26.6392H22.5377C23.7886 26.6392 24.896 25.8189 25.2242 24.6295L26.3316 20.7946C26.6187 19.8307 27.5005 19.1745 28.5054 19.1745H39.0667C44.3576 19.1745 48.7052 14.9499 48.8077 9.74104C48.8487 7.1571 47.8644 4.71671 46.0597 2.87104Z" class="mk"/>
+                </g>
+                <text x="36" y="20" font-family="Plus Jakarta Sans, sans-serif" font-size="18" font-weight="800" class="wm">Potential</text>
+            </svg>
+        </div>
+        <div class="section-number" aria-hidden="true">04</div>
+        <h1 id="slide-deliverables-title" class="slide-title">Deliverables</h1>
+        <div class="slide-content">
+            <div class="deliverables">
+                {{DELIVERABLES_LIST}}
+            </div>
+        </div>
+    </section>
+
+    <!-- Per-deliverable Features slides — replace this comment with one .slide block per deliverable.
+         Use the block in SKILL.md "Per-deliverable feature slides".
+         Update data-slide attribute to be sequential. -->
+    {{FEATURES_SLIDES}}
+
+    <!-- Slide N — TIMELINE -->
+    <section class="slide" data-slide="__TIMELINE_INDEX__" aria-labelledby="slide-timeline-title">
+        <div class="slide-logo" aria-hidden="true">
+            <svg width="132" height="28" viewBox="0 0 132 28" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Potential">
+                <g transform="translate(0, 0) scale(0.55)">
+                    <path d="M26.1264 30.228H12.4889C11.4431 30.228 10.4587 30.6176 9.72044 31.3559C8.98217 32.1147 8.57202 33.099 8.59253 34.1449C8.59253 36.2777 10.3972 38.0208 12.571 38.0208H22.3735C23.604 38.0208 24.7114 37.18 25.06 35.9906L26.5571 30.8022C26.5981 30.6586 26.5776 30.5151 26.4955 30.392C26.4135 30.2895 26.27 30.228 26.1264 30.228Z" class="mk"/>
+                    <path d="M44.4597 22.7223H31.4579C30.4121 22.7223 29.4277 23.1119 28.6894 23.8502C27.9512 24.609 27.541 25.5933 27.541 26.6392C27.5615 28.772 29.3662 30.5151 31.54 30.5151H40.7068C41.9372 30.5151 43.0446 29.6743 43.3933 28.5054L44.8903 23.2965C44.9313 23.153 44.9108 23.0094 44.8083 22.9069C44.7263 22.7838 44.6032 22.7223 44.4597 22.7223Z" class="mk"/>
+                    <path d="M46.0597 2.87104C44.2346 1.02537 41.8147 0 39.2308 0H30.146C29.0796 0 28.1157 0.717761 27.8286 1.74313L26.6802 5.72158C26.3726 6.76746 25.3882 7.50573 24.3013 7.50573H13.5554C11.3611 7.50573 9.55647 9.24886 9.53596 11.3816C9.53596 12.4275 9.94611 13.4119 10.6844 14.1501C11.4226 14.8884 12.407 15.2986 13.4529 15.2986H22.9273C24.1783 15.2986 25.2652 14.4578 25.6138 13.2683L26.7212 9.45394C27.0083 8.49009 27.9106 7.81335 28.9155 7.81335H37.6722C38.1644 7.81335 38.6565 8.01841 39.0052 8.36704C39.3538 8.71566 39.5179 9.14632 39.5179 9.59748C39.5179 10.0692 39.3333 10.4998 39.0052 10.8279C38.677 11.1766 38.2259 11.3611 37.7542 11.3611H29.7563C28.6899 11.3611 27.7261 12.0789 27.439 13.1043L26.2905 17.0622C25.9829 18.1081 25.0191 18.8464 23.9117 18.8464H3.89642C1.76364 18.8464 0 20.5895 0 22.7428C0 24.896 1.76364 26.6392 3.89642 26.6392H22.5377C23.7886 26.6392 24.896 25.8189 25.2242 24.6295L26.3316 20.7946C26.6187 19.8307 27.5005 19.1745 28.5054 19.1745H39.0667C44.3576 19.1745 48.7052 14.9499 48.8077 9.74104C48.8487 7.1571 47.8644 4.71671 46.0597 2.87104Z" class="mk"/>
+                </g>
+                <text x="36" y="20" font-family="Plus Jakarta Sans, sans-serif" font-size="18" font-weight="800" class="wm">Potential</text>
+            </svg>
+        </div>
+        <div class="section-number" aria-hidden="true">06</div>
+        <h1 id="slide-timeline-title" class="slide-title">Timeline</h1>
+        <div class="slide-content">
+            <table class="timeline-table">
+                <thead>
+                    <tr><th>Milestone</th><th>Duration</th><th>Deliverable</th></tr>
+                </thead>
+                <tbody>
+                    {{TIMELINE_ROWS}}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Slide N — NEED TO DISCUSS -->
+    <section class="slide" data-slide="__DISCUSS_INDEX__" aria-labelledby="slide-discuss-title">
+        <div class="slide-logo" aria-hidden="true">
+            <svg width="132" height="28" viewBox="0 0 132 28" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Potential">
+                <g transform="translate(0, 0) scale(0.55)">
+                    <path d="M26.1264 30.228H12.4889C11.4431 30.228 10.4587 30.6176 9.72044 31.3559C8.98217 32.1147 8.57202 33.099 8.59253 34.1449C8.59253 36.2777 10.3972 38.0208 12.571 38.0208H22.3735C23.604 38.0208 24.7114 37.18 25.06 35.9906L26.5571 30.8022C26.5981 30.6586 26.5776 30.5151 26.4955 30.392C26.4135 30.2895 26.27 30.228 26.1264 30.228Z" class="mk"/>
+                    <path d="M44.4597 22.7223H31.4579C30.4121 22.7223 29.4277 23.1119 28.6894 23.8502C27.9512 24.609 27.541 25.5933 27.541 26.6392C27.5615 28.772 29.3662 30.5151 31.54 30.5151H40.7068C41.9372 30.5151 43.0446 29.6743 43.3933 28.5054L44.8903 23.2965C44.9313 23.153 44.9108 23.0094 44.8083 22.9069C44.7263 22.7838 44.6032 22.7223 44.4597 22.7223Z" class="mk"/>
+                    <path d="M46.0597 2.87104C44.2346 1.02537 41.8147 0 39.2308 0H30.146C29.0796 0 28.1157 0.717761 27.8286 1.74313L26.6802 5.72158C26.3726 6.76746 25.3882 7.50573 24.3013 7.50573H13.5554C11.3611 7.50573 9.55647 9.24886 9.53596 11.3816C9.53596 12.4275 9.94611 13.4119 10.6844 14.1501C11.4226 14.8884 12.407 15.2986 13.4529 15.2986H22.9273C24.1783 15.2986 25.2652 14.4578 25.6138 13.2683L26.7212 9.45394C27.0083 8.49009 27.9106 7.81335 28.9155 7.81335H37.6722C38.1644 7.81335 38.6565 8.01841 39.0052 8.36704C39.3538 8.71566 39.5179 9.14632 39.5179 9.59748C39.5179 10.0692 39.3333 10.4998 39.0052 10.8279C38.677 11.1766 38.2259 11.3611 37.7542 11.3611H29.7563C28.6899 11.3611 27.7261 12.0789 27.439 13.1043L26.2905 17.0622C25.9829 18.1081 25.0191 18.8464 23.9117 18.8464H3.89642C1.76364 18.8464 0 20.5895 0 22.7428C0 24.896 1.76364 26.6392 3.89642 26.6392H22.5377C23.7886 26.6392 24.896 25.8189 25.2242 24.6295L26.3316 20.7946C26.6187 19.8307 27.5005 19.1745 28.5054 19.1745H39.0667C44.3576 19.1745 48.7052 14.9499 48.8077 9.74104C48.8487 7.1571 47.8644 4.71671 46.0597 2.87104Z" class="mk"/>
+                </g>
+                <text x="36" y="20" font-family="Plus Jakarta Sans, sans-serif" font-size="18" font-weight="800" class="wm">Potential</text>
+            </svg>
+        </div>
+        <div class="section-number" aria-hidden="true">07</div>
+        <h1 id="slide-discuss-title" class="slide-title">Need to Discuss</h1>
+        <div class="slide-content">
+            <ul class="discuss-list">
+                {{NEED_TO_DISCUSS}}
+            </ul>
+        </div>
+    </section>
+
+    <!-- Final slide — THANK YOU -->
+    <section class="slide slide-thankyou" data-slide="__THANKYOU_INDEX__" aria-labelledby="slide-thankyou-title">
+        <div class="cover-mark" aria-hidden="true">
+            <svg viewBox="0 0 49 39" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Potential">
+                <path d="M26.1264 30.228H12.4889C11.4431 30.228 10.4587 30.6176 9.72044 31.3559C8.98217 32.1147 8.57202 33.099 8.59253 34.1449C8.59253 36.2777 10.3972 38.0208 12.571 38.0208H22.3735C23.604 38.0208 24.7114 37.18 25.06 35.9906L26.5571 30.8022C26.5981 30.6586 26.5776 30.5151 26.4955 30.392C26.4135 30.2895 26.27 30.228 26.1264 30.228Z"/>
+                <path d="M44.4597 22.7223H31.4579C30.4121 22.7223 29.4277 23.1119 28.6894 23.8502C27.9512 24.609 27.541 25.5933 27.541 26.6392C27.5615 28.772 29.3662 30.5151 31.54 30.5151H40.7068C41.9372 30.5151 43.0446 29.6743 43.3933 28.5054L44.8903 23.2965C44.9313 23.153 44.9108 23.0094 44.8083 22.9069C44.7263 22.7838 44.6032 22.7223 44.4597 22.7223Z"/>
+                <path d="M46.0597 2.87104C44.2346 1.02537 41.8147 0 39.2308 0H30.146C29.0796 0 28.1157 0.717761 27.8286 1.74313L26.6802 5.72158C26.3726 6.76746 25.3882 7.50573 24.3013 7.50573H13.5554C11.3611 7.50573 9.55647 9.24886 9.53596 11.3816C9.53596 12.4275 9.94611 13.4119 10.6844 14.1501C11.4226 14.8884 12.407 15.2986 13.4529 15.2986H22.9273C24.1783 15.2986 25.2652 14.4578 25.6138 13.2683L26.7212 9.45394C27.0083 8.49009 27.9106 7.81335 28.9155 7.81335H37.6722C38.1644 7.81335 38.6565 8.01841 39.0052 8.36704C39.3538 8.71566 39.5179 9.14632 39.5179 9.59748C39.5179 10.0692 39.3333 10.4998 39.0052 10.8279C38.677 11.1766 38.2259 11.3611 37.7542 11.3611H29.7563C28.6899 11.3611 27.7261 12.0789 27.439 13.1043L26.2905 17.0622C25.9829 18.1081 25.0191 18.8464 23.9117 18.8464H3.89642C1.76364 18.8464 0 20.5895 0 22.7428C0 24.896 1.76364 26.6392 3.89642 26.6392H22.5377C23.7886 26.6392 24.896 25.8189 25.2242 24.6295L26.3316 20.7946C26.6187 19.8307 27.5005 19.1745 28.5054 19.1745H39.0667C44.3576 19.1745 48.7052 14.9499 48.8077 9.74104C48.8487 7.1571 47.8644 4.71671 46.0597 2.87104Z"/>
+            </svg>
+        </div>
+        <h1 id="slide-thankyou-title" class="thankyou-title">THANK YOU</h1>
+        <div class="contact-email">contact@potentialai.com</div>
+        <div class="copyright">Copyright 2026. Potential INC. All rights reserved</div>
+    </section>
+
+</div>
+
+<nav class="nav-bar" aria-label="Slide navigation"></nav>
+<div class="slide-counter" aria-live="polite">1 / 1</div>
+
+<script>
+/* Theme: runs FIRST to prevent flash-of-wrong-theme */
+(function() {
+    const root = document.documentElement;
+    const saved = localStorage.getItem('meetingTheme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    root.setAttribute('data-theme', saved ?? (prefersDark ? 'dark' : 'light'));
+})();
+
+/* Re-index data-slide on every section AT RUNTIME so any number of feature slides is safe */
+(function() {
+    const slides = document.querySelectorAll('.slide');
+    slides.forEach((s, i) => s.setAttribute('data-slide', String(i)));
+})();
+
+/* Navigation + theme toggle */
+(function() {
+    const slides = document.querySelectorAll('.slide');
+    const counter = document.querySelector('.slide-counter');
+    const nav = document.querySelector('.nav-bar');
+    const themeBtn = document.querySelector('.theme-toggle');
+    const fsBtn = document.querySelector('.fullscreen-btn');
+    let current = 0;
+
+    if (nav && !nav.querySelector('.nav-dot')) {
+        slides.forEach((_, i) => {
+            const b = document.createElement('button');
+            b.className = 'nav-dot';
+            b.type = 'button';
+            b.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+            b.addEventListener('click', () => goTo(i));
+            nav.appendChild(b);
+        });
+    }
+
+    function goTo(n) {
+        if (n < 0 || n >= slides.length || n === current) return;
+        slides.forEach((s, i) => {
+            s.classList.remove('active', 'prev');
+            if (i < n) s.classList.add('prev');
+        });
+        slides[n].classList.add('active');
+        current = n;
+        updateNav();
+    }
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    function updateNav() {
+        document.querySelectorAll('.nav-dot').forEach((d, i) => {
+            d.classList.toggle('active', i === current);
+            d.setAttribute('aria-current', i === current ? 'true' : 'false');
+        });
+        if (counter) counter.textContent = (current + 1) + ' / ' + slides.length;
+    }
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+    }
+    function toggleTheme() {
+        const root = document.documentElement;
+        const nextTheme = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', nextTheme);
+        localStorage.setItem('meetingTheme', nextTheme);
+        if (themeBtn) themeBtn.setAttribute('aria-pressed', nextTheme === 'dark');
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+        else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleFullscreen(); }
+        else if (e.key === 't' || e.key === 'T') { e.preventDefault(); toggleTheme(); }
+    });
+
+    if (fsBtn) fsBtn.addEventListener('click', toggleFullscreen);
+    if (themeBtn) {
+        themeBtn.setAttribute('aria-pressed', document.documentElement.getAttribute('data-theme') === 'dark');
+        themeBtn.addEventListener('click', toggleTheme);
+    }
+    updateNav();
+})();
+</script>
+
+</body>
+</html>
