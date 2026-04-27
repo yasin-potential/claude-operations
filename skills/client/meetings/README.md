@@ -9,7 +9,6 @@ Branded HTML presentations for live client meetings.
 | [kickoff/](kickoff/SKILL.md) | `/kickoff` | Project start meeting | `[Kickoff] {ProjectName}.html` (11 slides) |
 | [weekly/](weekly/SKILL.md) | `/weekly` | Weekly client meeting | `[Weekly] {ProjectName} ({YYYY-MM-DD}).md` + `.html` |
 | [closing/](closing/SKILL.md) | `/closing` | Project completion meeting | `[Closing] {ProjectName} ({YYYY-MM-DD}).html` (11 slides) |
-| [make-mm/](make-mm/SKILL.md) | `/make-mm` | Any meeting — generate minutes | `[Minutes] {ProjectName} - {Title} ({YYYY-MM-DD}).md` + `.html` |
 
 ## Shared Design
 
