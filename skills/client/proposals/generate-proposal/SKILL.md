@@ -102,13 +102,20 @@ Fill these with Korean text in Korean mode, English text in English mode:
 | `{{MILESTONE_1_NAME}}` ~ `{{MILESTONE_3_NAME}}` | `프로젝트 착수 (계약 체결)` |
 | `{{TIMELINE}}` | `3개월` |
 
-Also translate the following hardcoded slide-body blocks (title stays English per "never edit left-column titles" rule — only the card body content translates):
+Also translate the following hardcoded slide-body blocks. **In Korean mode, left-column section titles also translate** for the slides listed below — exception clauses are noted per slide.
 
-- **Our Process (Slide 7)** — translate the 4 step cards: Step-number pill (`Step 01` → `단계 01`), step name h3 (`Discovery & Research` → `발굴 & 리서치`; `Design & Development` → `디자인 & 개발`; `Testing & Deployment` → `테스트 & 배포`; `Maintenance & Growth` → `유지보수 & 성장`), and the step description paragraph. Left-column title `Our / Process` stays English.
-- **What is Behance? (Slide 10)** — translate the right-column body: the "Behance is the Biggest Portfolio platform…" lead paragraph, the "Why it's difficult to be featured?" sub-heading (→ `Featured 선정이 어려운 이유`), and its bullet ("features only 1 project a week" → `주 1개 프로젝트만 Featured로 선정`). Left-column title `What is / Behance?` stays English. The word "Behance" itself stays English everywhere (brand name); "Featured" may stay English as a loanword, as it's commonly used in Korean design parlance.
-- **Featured on Behance (Slide 11)** — card bodies stay English (they're images + generic "Check Out" CTA). Left-column title `Featured 4 Times on Behance` stays English. When generating, collect the 4 Behance gallery URLs from the user and wire each card to its specific URL; fall back to the company profile `https://www.behance.net/potentipotenti` if a specific URL is not provided.
+- **Table of Contents (Slide 2)** — translate the heading (`Table of Content` → `목차`), every chapter label (`Who we are` → `회사 소개`, `Client Request` → `고객 요청사항`, `Proposed Solution` → `제안 솔루션`, `Our Process` → `진행 프로세스`, `Our Portfolio` → `포트폴리오`), and the chapter number prefix (`Chapter - N` → `N장`).
+- **Who We Are (Slide 3)** — translate the title (`Who / We are` → `회사 / 소개`), all three stat labels (`Team member` → `팀 멤버`, `Successful Project` → `성공 프로젝트`, `Years of Experience` → `년 경력`), the agency description paragraph (`We're a Design and Development focused agency…` → Korean equivalent), and the `Learn more` button label → `더 알아보기`. Numeric stats (`40+`, `100+`, `3+`) stay as-is.
+- **Cover (Slide 1)** — for consistency with the Who We Are stat labels, also translate the cover stat block (`Team member` → `팀 멤버`, `Successful Project` → `성공 프로젝트`). Other cover elements (`Proposal` heading, `Visit Website` button, Clutch sub-label) stay English.
+- **Our Process (Slide 7)** — translate the title (`Our / Process` → `진행 / 프로세스`), the 4 step pills (`Step 01` → `단계 01`), step name h3 (`Discovery & Research` → `발굴 & 리서치`; `Design & Development` → `디자인 & 개발`; `Testing & Deployment` → `테스트 & 배포`; `Maintenance & Growth` → `유지보수 & 성장`), the step description paragraphs, and the matching `alt=` attributes on the step icons.
+- **Portfolio / Case Studies (every per-project slide, Slides 8–26)** — translate the metadata labels (`Platform` → `개발 범위`, `Project Duration` → `소요 시간`), the `Live Link` CTA (→ `바로 가기`), the platform value (`Design & Development` → `디자인 & 개발`), and the duration units (`X Months` / `X Month` → `X개월`). The project name and project type stay English (they're brand names like `343Pet`, `Pet HealthCare App`).
+- **Portfolio links** — point every project card's `href` to the company portfolio listing page `https://potentialai.com/portfolio` (root). Per-project pretty paths like `/portfolio/<project-slug>` are not maintained and 404 — never use them. This also applies to the cover-slide CTA link.
+- **What is Behance? (Slide 10)** — translate the right-column body: the "Behance is the Biggest Portfolio platform…" lead paragraph (→ `Behance는 세계 최대 포트폴리오 플랫폼으로, Adobe가 운영하며 전 세계 크리에이터가 작품을 선보이는 곳입니다.`), the "Why it's difficult to be featured?" sub-heading (→ `Featured 선정이 어려운 이유`), and its bullet (`It features only 1 project a week in the world.` → `전 세계에서 주 1개 프로젝트만 Featured로 선정됩니다.`). The word "Behance" itself stays English (brand name); "Featured" stays English as a loanword.
+- **Featured on Behance (Slide 11)** — translate the card CTA (`Check Out` → `바로 가기`) on all 4 cards. Card images and the section title stay as-is. Collect the 4 Behance gallery URLs from the user; fall back to `https://www.behance.net/potentipotenti` if a specific URL is missing.
+- **Clutch Reviews (Slide 13)** — translate the lead paragraph next to the Clutch logo to `글로벌 최대 에이전시 리뷰 플랫폼, 클러치에서 Potential의 리뷰를 확인해보세요.` and translate the `Live Link` CTA in this section to `바로 가기`. The individual reviewer cards (names, titles, quotes) stay English — those are real client quotes.
 - **To Client FAQ (Slide 14)** — translate every Q (h3) and A (p/ul body) in the 5 glass-card FAQ stack: agreement timing, project duration, server hosting cost, team composition, extra cost policy. Left-column title `To / Client` stays English. Team-composition bullets (e.g., `10 year experienced PM` → `경력 10년 PM`) follow the pattern in the Korean example.
-- **Our Pricing (Slide 15)** — translate table headers (`Milestone` → `마일스톤`, `Payment Due` → `지급 시점`, `Amount (USD)` → `금액 (USD)`), row labels (`Project Kickoff (Contract Signed)` → `프로젝트 착수 (계약 체결)`, `After Delivery` → `납품 완료 후`, `Total Project Cost` → `총 프로젝트 비용`), and the section header `Only Design` → `디자인 전용`. Left-column title `Our / Pricing` and the `PROJECT BASED` pill badge stay English (they sit in the left column). All dollar amounts and percentages stay as-is.
+- **Our Pricing (Slide 15)** — translate table headers (`Milestone` → `마일스톤`, `Payment Due` → `지급 시점`, `Amount (USD)` → `금액 (USD)`, or `금액 (KRW · 부가세 별도)` if quoting Won), row labels (`Project Kickoff (Contract Signed)` → `프로젝트 착수 (계약 체결)`, `After Delivery` → `납품 완료 후`, `Total Project Cost` → `총 프로젝트 비용`), and the section header (`Only Design` → project-specific label like `DogWalker MVP`). Left-column title `Our / Pricing` and the `PROJECT BASED` pill badge stay English (they sit in the left column). All numeric amounts and percentages stay as-is. **Currency exception:** if the project is invoiced domestically in KRW (matching a Korean 견적서), display Won amounts (`5,400,000원`) instead of USD on this slide for consistency with the invoice the client will countersign.
+- **Thank You (final slide)** — translate the heading (`Thank You !` → `감사 합니다 !`) and the coffee chat button text (`Let's grab an online coffee and talk more.` → `프로젝트와 관련없는 커피챗도 늘 환영합니다`). The coffee emoji stays.
 
 ### Stays English (always, in both modes)
 
@@ -122,16 +129,14 @@ Do not translate these. In Korean mode leave them in English:
 
 The following are hardcoded in `templates/proposal-template.html` and must stay **exactly as-is** in both modes:
 
-- All left-column section titles: "Who We are", "Client Request", "Table of Content", "Our Portfolio", "Our Process", "Tech Stack", "Our Clients", "Expert Team", "Clutch Reviews", "Contact Us", "Thank You", etc.
-- The Who-We-Are agency description ("We're a Design and Development focused agency…")
-- Every portfolio case-study slide (DiaFit, Stockify, PET, Mentora, Agrilo) — titles, descriptions, metrics
-- Behance explanation, Featured Projects labels
-- All Clutch review cards
-- All team section headers and bio text
-- All Contact Us office blocks
-- Button labels ("Visit Website", "Learn more")
-- Chapter numbers ("Chapter - 1", "Chapter - 2", …)
-- Stats on the cover / Who-We-Are slides ("40+ Team member", "100+ Successful Project", "3+ Years of Experience")
+- Left-column section titles **NOT explicitly listed in the translate-block above** — i.e., `Client Request`, `Tech Stack`, `Our Clients`, `Expert Team`, `Contact Us`, plus chapter section titles for slides without translation rules.
+- Portfolio project names and project types (e.g., `343Pet`, `Pet HealthCare App`) — brand identifiers, never translated. Only the metadata labels (`Platform`, `Project Duration`, `Live Link`) and unit suffixes (`X Months`) translate per the Portfolio rule above.
+- Real client testimonial quotes inside the Clutch review cards.
+- All team section headers and individual bio text.
+- All Contact Us office blocks (city / address / contact lines).
+- The cover-slide `Proposal` headline + `Visit Website` button.
+- Numeric stats (`40+`, `100+`, `3+`).
+- Logo `<symbol>` and SVG `<use>` references.
 
 ### Step 5: Embed Images as Base64
 
