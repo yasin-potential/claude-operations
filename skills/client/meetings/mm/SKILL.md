@@ -9,7 +9,7 @@ argument-hint: "[--project 'name'] [--date 'YYYY-MM-DD'] [--source 'path/to/tran
 
 Analyse a meeting transcript and produce two precision artifacts:
 
-1. **Internal `.md` report** — structured minutes for the dev team and project memory. Precise enough that any team member who was not in the meeting can act immediately.
+1. **Internal `.md` report** — structured minutes for the dev team and project history. Precise enough that any team member who was not in the meeting can act immediately.
 2. **Slack summary** — a short, copy-pasteable block to send to the client and all attendees.
 
 > **Principle:** Every line must be precise and actionable. No filler. If it cannot be acted on or referenced, cut it.
