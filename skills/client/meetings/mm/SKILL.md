@@ -51,7 +51,7 @@ Extract from `$ARGUMENTS`:
 | Arg | Required | Default |
 |-----|----------|---------|
 | `--project` | No | Auto-detect from CWD folder name or `package.json` name |
-| `--date` | No | Today's date (`YYYY-MM-DD`) |
+| `--date` | No | Today's local date (`YYYY-MM-DD`). If the transcript explicitly mentions a meeting date in its first 200 words, use that instead. Override with `--date` for any past meeting. |
 | `--source` | No | Path to a `.txt` / `.md` transcript file |
 
 ### 1.2 Obtain Transcript
@@ -60,28 +60,22 @@ Extract from `$ARGUMENTS`:
 Read the file at that path. Accept `.txt`, `.md`, `.vtt`, or any plain-text format.
 
 **If no `--source` is provided:**
-Use `AskUserQuestion` with a single prompt:
+Use `AskUserQuestion` with this structured call shape:
 
 ```
-Paste the meeting transcript below.
-
-This can be:
-  - A raw copy-paste from Zoom, Google Meet, or Teams auto-transcript
-  - A copy from the project dashboard meeting recording
-  - A text summary someone typed during the meeting
-  - A Slack thread recap
-
-Paste everything — the more complete, the more accurate the minutes.
+question: "Paste the meeting transcript below. Accepts Zoom / Meet / Teams auto-transcripts, dashboard recordings, typed summaries, or Slack thread recaps. Paste everything — completeness improves accuracy."
+options: []   # free-form text input only; no preset choices
 ```
 
 Accept the full pasted block as the transcript. Do not truncate or pre-process it before analysis.
 
 ### 1.3 Collect Attendees (optional fast-follow)
 
-If attendees are not clearly identifiable from the transcript, ask in one follow-up:
+If attendees are not clearly identifiable from the transcript, ask in one follow-up via `AskUserQuestion`:
 
 ```
-Who attended? (Name, role — one per line. Skip if already in the transcript.)
+question: "Who attended? List name and role, one per line. Type 'skip' if already in the transcript or unknown."
+options: []   # free-form text input
 ```
 
 Accept "skip" to proceed without a named attendee list.
@@ -111,6 +105,8 @@ Classify the meeting type by scanning for these keywords (case-insensitive, firs
 | None of the above | Ad-hoc |
 
 Write the detected value into `**Meeting type:**` in the .md header. Do not ask the user.
+
+**Optional subtitle:** If the meeting has a clear secondary theme dominant in the transcript (e.g., post-client debrief, scope review, blocker triage), append it after an em-dash: `Ad-hoc — Post-Client Debrief`. Subtitle must be 2–4 words and traceable to a phrase used in the transcript. Skip the subtitle if no clear theme emerges — do not fabricate one.
 
 #### Prior MM Carry-Forward (Recurring Mismatch Detection)
 
@@ -192,6 +188,11 @@ List every task, follow-up, or commitment mentioned in the meeting. For each:
 | **Priority** | Assign by deadline — do not infer from tone: **High** = deadline is today or transcript uses "urgent / ASAP / immediately"; **Medium** = deadline within 7 days or transcript says "this week / soon"; **Low** = no deadline mentioned. |
 
 Include every commitment made, even informally ("I'll send that over by tomorrow"). Do not filter.
+
+**Sort order** (apply in both .md table and Slack output):
+1. Priority descending — High → Medium → Low
+2. Within same priority: deadline ascending — earliest YYYY-MM-DD first; "Ongoing" and "Not specified" last
+3. Within same priority + deadline: owner alphabetical
 
 ### 2.6 Next Meeting Agenda
 
@@ -318,7 +319,7 @@ Format:
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🚧 *Blockers*   ← omit section entirely if none
+🚧 *Blockers* ({N})   ← omit section entirely if none; N = total client + team blockers
 Client → {one blocker per line}
 Team → {one blocker per line — repeat "Team →" for each distinct blocker}
 Team → {second team blocker if any}
@@ -333,7 +334,7 @@ _(Full list in meeting minutes doc if > 8 items)_
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📅 *Next Meeting Agenda*
+📅 *Next Meeting Agenda* ({N})
 • {agenda item derived from open mismatch, pending decision, or upcoming deadline}
 • {agenda item}
 ...
@@ -351,8 +352,10 @@ _Generated {YYYY-MM-DD} · `/mm --project "{PROJECT}"` · Potential INC_
 - Use `*bold*` for project name, owner names, and dates
 - One blocker per line — repeat `Client →` or `Team →` prefix for each distinct blocker; never combine two blockers on one line with `·`
 - All deadlines in action items use absolute `YYYY-MM-DD` — convert "today / tomorrow / this week" using the meeting date
-- Count badges `({N})` on Decisions, Mismatches, and Action Items headers
-- Max 8 action items; truncate Low-priority ones first with a note
+- Count badges `({N})` on **every** section header: Decisions, Mismatches, Blockers, Action Items, Next Meeting Agenda
+- **Vertical spacing**: exactly one blank line between header and first item; no blank lines between items within a section; one `━━━` divider line between sections (no blank line above or below the divider — divider acts as the separator)
+- **Sort**: action items by priority desc → deadline asc → owner asc (matches §2.5 sort order)
+- Max 8 action items; truncate Low-priority ones first with `_(Full list in meeting minutes doc)_`
 - Keep the entire block under 50 lines. If over, cut in this order until it fits:
   1. Reduce action items to 5, remove Low-priority ones
   2. Collapse resolved mismatches — show Open / Recurring only
@@ -360,6 +363,10 @@ _Generated {YYYY-MM-DD} · `/mm --project "{PROJECT}"` · Potential INC_
   4. Shorten summary to 1 sentence
   Never cut: Decisions, High-priority action items, Recurring mismatches, or Next Meeting Agenda.
 - No HTML, no triple backticks in the final Slack block
+
+**Empty-section handling — single rule:**
+- Slack output: omit the entire section (header + body) if it has zero items. Never print a section with `(none recorded)` body.
+- `.md` output: required sections (Summary, Decisions, Action Items) must use a fallback phrase ("No formal decisions recorded", "No action items recorded"); optional sections (Mismatches, Blockers, Next Meeting Agenda, Notes) are omitted entirely if empty.
 
 ---
 
