@@ -1,13 +1,13 @@
 ---
-name: weekly-convert-pdf
-description: "Convert a weekly meeting HTML deck (or any kickoff/closing deck using the same CSS framework) to a multi-page PDF where each slide becomes one 16:9 page — content full-bleed, aspect ratio preserved, no A4 cropping or flow break. Headless Playwright + Pillow under the hood."
+name: convert-pdf
+description: "Convert any meeting HTML deck (kickoff, weekly, closing) to a multi-page PDF where each slide becomes one 16:9 page — content full-bleed, aspect ratio preserved, no A4 cropping or flow break. Headless Playwright + Pillow under the hood."
 user-invocable: true
 argument-hint: "[path-to-html] [--out path-to-pdf] [--theme light|dark] [--width N] [--height N]"
 ---
 
-# Weekly Deck — HTML to PDF
+# Meeting Deck — HTML to PDF
 
-Convert an HTML slide deck (the kind produced by `/weekly`, `/kickoff`, or `/closing`) into a multi-page PDF that perfectly mirrors the rendered HTML — one slide per PDF page, original 16:9 aspect ratio preserved, content centered, nothing reflowed.
+Convert any HTML slide deck produced by `/kickoff`, `/weekly`, or `/closing` into a multi-page PDF that perfectly mirrors the rendered HTML — one slide per PDF page, original 16:9 aspect ratio preserved, content centered, nothing reflowed.
 
 ## When to use
 
@@ -32,7 +32,7 @@ If any dependency is missing, install before running.
 
 If the user passed a path, use it directly. Otherwise auto-detect:
 
-1. If invoked from `.claude-project/meetings/{Project}/weekly/`, glob `[Weekly] *.html` and pick the **most recent** by `(YYYY-MM-DD)` suffix.
+1. If invoked from a meeting subfolder (`.claude-project/meetings/{Project}/{kickoff|weekly|closing}/`), glob the matching prefix (`[Kickoff] *.html`, `[Weekly] *.html`, `[Closing] *.html`) and pick the **most recent** by `(YYYY-MM-DD)` suffix.
 2. If invoked from a project root, glob `.claude-project/meetings/**/*.html` and pick the most recent.
 3. If still ambiguous, ask the user via AskUserQuestion which file to convert.
 
@@ -43,13 +43,14 @@ Confirm the chosen path back to the user before running.
 Invoke `convert.py` from this skill folder with the resolved HTML path. The script:
 
 1. Launches headless Chromium at 1920×1080 (override with `--width` / `--height`).
-2. Loads the HTML via `file://` URL, waits for `networkidle`, forces the light theme (or `--theme dark`).
+2. Loads the HTML via `file://` URL, waits for `networkidle` with a 15 s upper bound, forces the light theme (or `--theme dark`).
 3. Hides chrome elements (nav bar, slide counter, theme + fullscreen buttons) via injected CSS.
 4. Counts slides by querying `document.querySelectorAll('.slide').length` — works for any deck count.
 5. Drives slide navigation by directly mutating `.active` / `.prev` classes on each slide (bypasses CSS transitions for deterministic capture).
-6. Screenshots each slide at 2× device pixel ratio (crisp at any zoom).
-7. Combines PNGs into a multi-page PDF via Pillow's `Image.save(..., format='PDF', save_all=True)`. PDF page size matches the source PNG, so the slide aspect is preserved exactly.
-8. Saves the output as `[Same Base Name].pdf` next to the source HTML, or to `--out PATH` if specified.
+6. Validates each slide is actually visible after the class toggle (waits up to 2 s); if a slide never reaches `visible`, prints which slide failed and exits non-zero rather than producing a broken PDF.
+7. Screenshots each slide at 2× device pixel ratio (crisp at any zoom).
+8. Combines PNGs into a multi-page PDF via Pillow's `Image.save(..., format='PDF', save_all=True)`. PDF page size matches the source PNG, so the slide aspect is preserved exactly.
+9. Saves the output as `[Same Base Name].pdf` next to the source HTML, or to `--out PATH` if specified.
 
 Command shape:
 
@@ -59,7 +60,7 @@ python "<this-skill>/convert.py" "<path/to/deck.html>" [--out "<path.pdf>"] [--t
 
 ### Step 3 — Report
 
-Print the absolute output path, the captured page count, and the file size. If any slide failed to render (e.g., transition stuck), report which slide and stop — do not silently produce a broken PDF.
+Print the absolute output path, the captured page count, and the file size. If any slide failed to render, the script already exited non-zero with the failing slide index — relay that to the user and stop.
 
 ## Why each slide becomes one page
 
@@ -79,13 +80,13 @@ This skill instead **screenshots each slide individually** then composes a multi
 
 ## Naming convention
 
-- **Operations repo**: `skills/client/meetings/weekly/convert_pdf/`
-- **Global skills** (`~/.claude/skills/`): `weekly-convert-pdf/`
-- **Slash command**: `/weekly-convert-pdf`
+- **Operations repo**: `skills/client/meetings/convert_pdf/`
+- **Global skills** (`~/.claude/skills/`): `convert-pdf/`
+- **Slash command**: `/convert-pdf`
 
 ## Reusing the script directly
 
-The Python script is self-contained and importable. Other skills (e.g., closing, kickoff) can call it via subprocess:
+The Python script is self-contained and importable. Other skills (e.g., kickoff, weekly, closing) can call it via subprocess:
 
 ```python
 import subprocess, sys
@@ -99,6 +100,6 @@ subprocess.run([
 
 ## See also
 
-- [`weekly/SKILL.md`](../SKILL.md) — produces the HTML this skill converts
-- [`kickoff/SKILL.md`](../../kickoff/SKILL.md) — same CSS framework; this skill works on its decks too
-- [`closing/SKILL.md`](../../closing/SKILL.md) — same CSS framework
+- [`kickoff/SKILL.md`](../kickoff/SKILL.md) — produces kickoff decks (verified working with this converter)
+- [`weekly/SKILL.md`](../weekly/SKILL.md) — produces weekly decks (verified working with this converter)
+- [`closing/SKILL.md`](../closing/SKILL.md) — produces closing decks (verified working with this converter)

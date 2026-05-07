@@ -8,9 +8,9 @@ Branded HTML presentations for live client meetings.
 |-------|---------|------|--------|
 | [kickoff/](kickoff/SKILL.md) | `/kickoff` | Project start meeting | `[Kickoff] {ProjectName}.html` (11 slides) |
 | [weekly/](weekly/SKILL.md) | `/weekly` | Weekly client meeting | `[Weekly] {ProjectName} ({YYYY-MM-DD}).md` + `.html` |
-| [weekly/convert_pdf/](weekly/convert_pdf/SKILL.md) | `/weekly-convert-pdf` | Convert any deck HTML → multi-page PDF (16:9 per page, no A4 cropping) | `[…].pdf` next to source HTML |
 | [closing/](closing/SKILL.md) | `/closing` | Project completion meeting | `[Closing] {ProjectName} ({YYYY-MM-DD}).html` (11 slides) |
 | [mm/](mm/SKILL.md) | `/mm` | After any meeting | `[MM] {ProjectName} ({YYYY-MM-DD}).md` + Slack summary |
+| [convert_pdf/](convert_pdf/SKILL.md) | `/convert-pdf` | Convert any kickoff/weekly/closing deck HTML → multi-page PDF (16:9 per page, no A4 cropping) | `[…].pdf` next to source HTML |
 
 ## Shared Design
 

@@ -36,7 +36,10 @@ except ImportError as e:
     raise SystemExit("Pillow is required. Install with: pip install pillow") from e
 
 try:
-    from playwright.async_api import async_playwright
+    from playwright.async_api import (
+        TimeoutError as PlaywrightTimeoutError,
+        async_playwright,
+    )
 except ImportError as e:
     raise SystemExit(
         "playwright is required. Install with: pip install playwright "
@@ -103,7 +106,14 @@ async def capture_slides(
         )
         page = await ctx.new_page()
         await page.goto(html_path.resolve().as_uri())
-        await page.wait_for_load_state("networkidle")
+        try:
+            await page.wait_for_load_state("networkidle", timeout=15000)
+        except PlaywrightTimeoutError:
+            # Some decks keep long-poll connections alive (Google Fonts, analytics)
+            # — the framework is interactive long before networkidle ever fires.
+            # Fall back to "load" + a short settle, which is sufficient here.
+            await page.wait_for_load_state("load")
+            await page.wait_for_timeout(500)
 
         # Force the requested theme — handles decks that read localStorage on load.
         await page.evaluate(
@@ -136,8 +146,22 @@ async def capture_slides(
                 }""",
                 [slide_selector, i],
             )
-            # Brief settle for any non-transition rendering (e.g. font swap).
-            await page.wait_for_timeout(150)
+            # Confirm the toggled slide actually became visible before screenshotting —
+            # protects against a stuck transition or a typo in --slide-selector
+            # that would otherwise produce a blank page in the PDF.
+            try:
+                await page.locator(f"{slide_selector}.active").wait_for(
+                    state="visible", timeout=2000
+                )
+            except PlaywrightTimeoutError:
+                await browser.close()
+                print(
+                    f"ERROR: slide {i + 1}/{slide_count} did not become visible within 2s "
+                    f"after toggling .active (selector={slide_selector!r}). "
+                    "Aborting before producing a broken PDF.",
+                    file=sys.stderr,
+                )
+                raise SystemExit(3)
             out = out_dir / f"slide_{i:03d}.png"
             await page.screenshot(path=str(out), full_page=False)
             paths.append(out)
